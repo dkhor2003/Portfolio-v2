@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/three@0.132.2/build/three.min.js"></script>
+<style>
+html{scroll-behavior:auto}
+body{margin:0;background:#0a0a0f}
+::selection{background:#4dd9d0;color:#0a0a0f}
+input::placeholder,textarea::placeholder{color:#5a5a68}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.nav-links{display:flex}
+.nav-burger{display:none}
+@media (max-width:820px){
+  .nav-links{display:none}
+  .nav-burger{display:flex}
+  .avatar-stage{width:110px!important;height:110px!important;right:16px!important;left:auto!important;top:auto!important;bottom:16px!important;transform:none!important}
+}
+</style>
+</helmet>
+
+<div style="background:#0a0a0f;color:#f2f2f5;font-family:'Inter',sans-serif;min-height:100vh;position:relative;overflow-x:hidden" onMouseMove="{{ onMouseMove }}">
+
+<div ref="{{ setCursorDot }}" style="position:fixed;width:8px;height:8px;border-radius:50%;background:{{ accent }};pointer-events:none;z-index:9999;top:0;left:0;transform:translate(-50%,-50%);display:none"></div>
+<div ref="{{ setCursorRing }}" style="position:fixed;width:32px;height:32px;border-radius:50%;border:1px solid {{ accent }};pointer-events:none;z-index:9998;top:0;left:0;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .2s;opacity:.6;display:none"></div>
+
+<nav style="position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(20px,5vw,56px);background:rgba(10,10,15,.7);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)">
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;letter-spacing:-.01em">alex<span style="color:{{ accent }}">.dev</span></div>
+  <div class="nav-links" style="gap:28px;font-size:13px;font-weight:500;color:#c2c2cc">
+    <a href="#about" onClick="{{ scrollToSection }}" data-target="about" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="text-decoration:none;color:inherit">About</a>
+    <a href="#experience" onClick="{{ scrollToSection }}" data-target="experience" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="text-decoration:none;color:inherit">Experience</a>
+    <a href="#skills" onClick="{{ scrollToSection }}" data-target="skills" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="text-decoration:none;color:inherit">Skills</a>
+    <a href="#projects" onClick="{{ scrollToSection }}" data-target="projects" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="text-decoration:none;color:inherit">Work</a>
+    <a href="#contact" onClick="{{ scrollToSection }}" data-target="contact" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="text-decoration:none;color:inherit">Contact</a>
+    <a href="Latte Art.dc.html" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="text-decoration:none;color:oklch(0.78 0.16 55);display:flex;align-items:center;gap:6px">Latte Art ↗</a>
+  </div>
+  <div class="nav-burger" onClick="{{ toggleMobile }}" style="flex-direction:column;gap:5px;cursor:pointer;padding:6px">
+    <span style="width:22px;height:2px;background:#f2f2f5"></span>
+    <span style="width:22px;height:2px;background:#f2f2f5"></span>
+    <span style="width:22px;height:2px;background:#f2f2f5"></span>
+  </div>
+</nav>
+
+<sc-if value="{{ mobileOpen }}">
+  <div style="position:fixed;top:60px;left:0;right:0;z-index:99;background:#0e0e15;border-bottom:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;padding:8px 24px 20px;gap:18px;font-size:15px;font-weight:500">
+    <a href="#about" onClick="{{ scrollToSection }}" data-target="about" style="text-decoration:none;color:#f2f2f5">About</a>
+    <a href="#experience" onClick="{{ scrollToSection }}" data-target="experience" style="text-decoration:none;color:#f2f2f5">Experience</a>
+    <a href="#skills" onClick="{{ scrollToSection }}" data-target="skills" style="text-decoration:none;color:#f2f2f5">Skills</a>
+    <a href="#projects" onClick="{{ scrollToSection }}" data-target="projects" style="text-decoration:none;color:#f2f2f5">Work</a>
+    <a href="#contact" onClick="{{ scrollToSection }}" data-target="contact" style="text-decoration:none;color:#f2f2f5">Contact</a>
+    <a href="Latte Art.dc.html" style="text-decoration:none;color:oklch(0.78 0.16 55)">Latte Art ↗</a>
+  </div>
+</sc-if>
+
+<canvas ref="{{ setCanvas }}" class="avatar-stage" style="position:fixed;width:360px;height:360px;right:3vw;top:50%;transform:translateY(-50%);z-index:5;cursor:grab;touch-action:none" onPointerDown="{{ onDragStart }}" onPointerMove="{{ onDragMove }}" onPointerUp="{{ onDragEnd }}" onPointerLeave="{{ onDragEnd }}"></canvas>
+
+<section id="hero" style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 clamp(20px,6vw,80px);position:relative" data-screen-label="Hero">
+  <div style="max-width:640px;position:relative;z-index:2">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:{{ accent }};margin-bottom:16px">$ whoami</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(38px,6vw,72px);line-height:1.02;letter-spacing:-.02em">Alex Rivera</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(18px,2.4vw,26px);color:#9a9aa8;margin-top:14px">Software developer building fast, interactive things for the web — and pouring rosettas on the side.</div>
+    <div style="display:flex;gap:14px;margin-top:36px;flex-wrap:wrap">
+      <button onClick="{{ scrollToSection }}" data-target="projects" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="background:{{ accent }};color:#0a0a0f;border:none;padding:14px 26px;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s" style-hover="transform:translateY(-2px);box-shadow:0 8px 24px rgba(77,217,208,.25)">See my work</button>
+      <button onClick="{{ scrollToSection }}" data-target="contact" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="background:transparent;color:#f2f2f5;border:1px solid rgba(255,255,255,.18);padding:13px 24px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:border-color .15s" style-hover="border-color:rgba(255,255,255,.5)">Get in touch</button>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:36px;left:clamp(20px,6vw,80px);display:flex;flex-direction:column;align-items:center;gap:8px;color:#5a5a68;font-size:11px;font-family:'JetBrains Mono',monospace">
+    <span>scroll</span>
+    <div style="width:1px;height:34px;background:linear-gradient(#5a5a68,transparent);animation:bounce 1.8s ease-in-out infinite"></div>
+  </div>
+</section>
+
+<section id="about" style="padding:140px clamp(20px,6vw,80px) 100px;display:grid;grid-template-columns:1.2fr 1fr;gap:60px;max-width:1200px;margin:0 auto" data-screen-label="About">
+  <div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ accent }};letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px">About</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(26px,3.4vw,38px);line-height:1.2">I like building things that feel alive.</div>
+    <div style="margin-top:20px;font-size:15.5px;line-height:1.75;color:#b0b0bc;max-width:520px">
+      Placeholder bio — swap in your own story. I'm a software developer who enjoys the intersection of engineering and motion: interfaces with real physics, transitions that feel inevitable, and code that stays fast under pressure. When I'm not shipping features, I'm steaming milk and chasing symmetric rosettas.
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-content:start">
+    <div style="background:#121218;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:{{ accent }}">5+</div>
+      <div style="font-size:12.5px;color:#8a8a98;margin-top:4px">Years building software</div>
+    </div>
+    <div style="background:#121218;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:{{ accent }}">30+</div>
+      <div style="font-size:12.5px;color:#8a8a98;margin-top:4px">Shipped projects</div>
+    </div>
+    <div style="background:#121218;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:{{ accent }}">SF</div>
+      <div style="font-size:12.5px;color:#8a8a98;margin-top:4px">Based in, open to remote</div>
+    </div>
+    <div style="background:#121218;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:{{ accent }}">☕</div>
+      <div style="font-size:12.5px;color:#8a8a98;margin-top:4px">Certified latte artist*</div>
+    </div>
+  </div>
+</section>
+
+<section id="experience" style="padding:100px clamp(20px,6vw,80px);max-width:900px;margin:0 auto" data-screen-label="Experience">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ accent }};letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px">Experience</div>
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(26px,3.4vw,38px);margin-bottom:48px">Where I've worked</div>
+  <div style="position:relative;padding-left:28px;border-left:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:44px">
+    <sc-for list="{{ experience }}" as="job" hint-placeholder-count="4">
+      <div style="position:relative">
+        <div style="position:absolute;left:-33px;top:4px;width:9px;height:9px;border-radius:50%;background:{{ accent }};box-shadow:0 0 0 4px rgba(10,10,15,1),0 0 12px {{ accent }}"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7a7a88;margin-bottom:6px">{{ job.dates }}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:19px">{{ job.role }} · <span style="color:#9a9aa8;font-weight:500">{{ job.company }}</span></div>
+        <div style="font-size:14.5px;color:#a4a4b0;margin-top:8px;line-height:1.65;max-width:640px">{{ job.description }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="skills" style="padding:100px clamp(20px,6vw,80px);max-width:1200px;margin:0 auto" data-screen-label="Skills">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ accent }};letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px">Skills</div>
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(26px,3.4vw,38px);margin-bottom:44px">Tools of the trade</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+    <sc-for list="{{ skillGroups }}" as="group" hint-placeholder-count="4">
+      <div style="background:#121218;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:24px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;margin-bottom:16px">{{ group.title }}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ group.items }}" as="skill" hint-placeholder-count="5">
+            <div style="font-size:12.5px;font-family:'JetBrains Mono',monospace;padding:6px 12px;border-radius:100px;border:1px solid rgba(255,255,255,.12);color:#c2c2cc;transition:border-color .15s,color .15s" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style-hover="border-color:{{ accent }};color:{{ accent }}">{{ skill }}</div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="projects" style="padding:100px clamp(20px,6vw,80px);max-width:1200px;margin:0 auto" data-screen-label="Projects">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ accent }};letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px">Selected work</div>
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(26px,3.4vw,38px);margin-bottom:44px">Things I've built</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+    <sc-for list="{{ projects }}" as="proj" hint-placeholder-count="4">
+      <div style="background:#121218;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;transition:transform .2s,border-color .2s" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style-hover="transform:translateY(-4px);border-color:rgba(255,255,255,.2)">
+        <div style="height:160px;background:repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1.5px,transparent 1.5px,transparent 12px),#181820;display:flex;align-items:center;justify-content:center;color:#5a5a68;font-family:'JetBrains Mono',monospace;font-size:11px">[ project screenshot ]</div>
+        <div style="padding:22px">
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:17px">{{ proj.name }}</div>
+          <div style="font-size:13.5px;color:#a4a4b0;margin-top:8px;line-height:1.6">{{ proj.description }}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">
+            <sc-for list="{{ proj.tags }}" as="tag" hint-placeholder-count="3">
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:{{ accent }};background:rgba(77,217,208,.1);padding:4px 9px;border-radius:100px">{{ tag }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="contact" style="padding:120px clamp(20px,6vw,80px) 60px;max-width:640px;margin:0 auto;text-align:center" data-screen-label="Contact">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ accent }};letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px">Contact</div>
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(28px,4vw,44px);line-height:1.15">Let's build something together.</div>
+  <div style="font-size:15px;color:#9a9aa8;margin-top:16px">Have a project, a role, or just want to talk 3D avatars and latte art? Drop a line.</div>
+
+  <sc-if value="{{ formSubmitted }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:36px;padding:28px;background:#121218;border:1px solid {{ accent }};border-radius:14px;font-size:14.5px">Thanks — I'll get back to you soon. ✦</div>
+  </sc-if>
+  <sc-if value="{{ notSubmitted }}" hint-placeholder-val="{{ true }}">
+  <form onSubmit="{{ onSubmit }}" style="margin-top:36px;display:flex;flex-direction:column;gap:12px;text-align:left">
+    <input required="true" placeholder="Name" value="{{ formName }}" onChange="{{ onNameChange }}" style="background:#121218;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:13px 16px;color:#f2f2f5;font-family:inherit;font-size:14px;outline:none" />
+    <input required="true" type="email" placeholder="Email" value="{{ formEmail }}" onChange="{{ onEmailChange }}" style="background:#121218;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:13px 16px;color:#f2f2f5;font-family:inherit;font-size:14px;outline:none" />
+    <textarea required="true" placeholder="Message" rows="4" value="{{ formMessage }}" onChange="{{ onMessageChange }}" style="background:#121218;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:13px 16px;color:#f2f2f5;font-family:inherit;font-size:14px;outline:none;resize:vertical"></textarea>
+    <button type="submit" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="background:{{ accent }};color:#0a0a0f;border:none;padding:14px;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:6px">Send message</button>
+  </form>
+  </sc-if>
+
+  <div style="display:flex;justify-content:center;gap:14px;margin-top:32px">
+    <a href="mailto:hello@alex.dev" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#c2c2cc;text-decoration:none;font-size:13px;font-family:'JetBrains Mono',monospace">@</a>
+    <a href="#" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#c2c2cc;text-decoration:none;font-size:13px;font-family:'JetBrains Mono',monospace">GH</a>
+    <a href="#" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#c2c2cc;text-decoration:none;font-size:13px;font-family:'JetBrains Mono',monospace">in</a>
+  </div>
+
+  <a href="Latte Art.dc.html" onMouseEnter="{{ onHoverStart }}" onMouseLeave="{{ onHoverEnd }}" style="margin-top:56px;display:flex;align-items:center;justify-content:space-between;text-decoration:none;background:#121218;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px 24px;color:#f2f2f5;transition:border-color .2s" style-hover="border-color:oklch(0.78 0.16 55)">
+    <span style="font-size:14px;font-weight:600">Also — I make latte art ☕</span>
+    <span style="color:oklch(0.78 0.16 55);font-size:14px">View gallery ↗</span>
+  </a>
+</section>
+
+<footer style="padding:32px clamp(20px,6vw,80px) 40px;display:flex;justify-content:space-between;align-items:center;color:#5a5a68;font-size:12px;border-top:1px solid rgba(255,255,255,.06);max-width:1200px;margin:0 auto">
+  <span>© 2026 Alex Rivera</span>
+  <span style="font-family:'JetBrains Mono',monospace">built with three.js &amp; too much coffee</span>
+</footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#4dd9d0&quot;, &quot;options&quot;: [&quot;#4dd9d0&quot;, &quot;#ff5fc4&quot;, &quot;#9d7bff&quot;, &quot;#ffb347&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Theme&quot;}, &quot;avatarStyle&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;solid&quot;, &quot;options&quot;: [&quot;solid&quot;, &quot;wireframe&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;3D Avatar&quot;}}">
+class Component extends DCLogic {
+  state = {
+    mobileOpen: false,
+    formName: '', formEmail: '', formMessage: '',
+    formSubmitted: false
+  };
+
+  canvas = null; cursorDot = null; cursorRing = null;
+  three = null; raf = null;
+  pose = { rotY: 0.3, armL: -0.4, armR: -0.5, lap: 1 };
+  target = { rotY: 0.3, armL: -0.4, armR: -0.5, lap: 1 };
+  dragOffset = 0; dragging = false; dragStartX = 0; dragBaseOffset = 0;
+  mouse = { x: -100, y: -100 };
+  ringPos = { x: -100, y: -100 };
+
+  keyframes = [
+    { rotY: 0.3, armL: -0.4, armR: -0.5, lap: 1 },
+    { rotY: -0.5, armL: 0.2, armR: -0.1, lap: 0.15 },
+    { rotY: 0.6, armL: -1.0, armR: 0.3, lap: 0 },
+    { rotY: -0.35, armL: -0.7, armR: -0.7, lap: 0 },
+    { rotY: 0.4, armL: -0.9, armR: 0.1, lap: 0 },
+    { rotY: 0, armL: 0.9, armR: -0.1, lap: 0 }
+  ];
+
+  componentDidMount() {
+    this.sectionIds = ['hero','about','experience','skills','projects','contact'];
+    this.setupThree();
+    window.addEventListener('resize', this.handleResize);
+    this.isFinePointer = window.matchMedia('(pointer: fine)').matches;
+    if (this.isFinePointer) document.addEventListener('mousemove', this.handleMouseMove);
+    this.raf = requestAnimationFrame(this.tick);
+  }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    window.removeEventListener('resize', this.handleResize);
+    document.removeEventListener('mousemove', this.handleMouseMove);
+    if (this.three && this.three.renderer) this.three.renderer.dispose();
+  }
+
+  setupThree() {
+    if (!this.canvas || !window.THREE) return;
+    const THREE = window.THREE;
+    const w = this.canvas.clientWidth || 360, h = this.canvas.clientHeight || 360;
+    const renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(w, h, false);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(32, w / h, 0.1, 100);
+    camera.position.set(0, 0.6, 7.5);
+
+    scene.add(new THREE.AmbientLight(0x8899ff, 0.7));
+    const key = new THREE.DirectionalLight(0x4dd9d0, 1.1);
+    key.position.set(3, 4, 5);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0xff5fc4, 0.6);
+    rim.position.set(-4, 2, -3);
+    scene.add(rim);
+
+    const accent = new THREE.Color(this.props.accentColor || '#4dd9d0');
+    const wireframe = (this.props.avatarStyle || 'solid') === 'wireframe';
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1c1c26, roughness: 0.5, metalness: 0.3, wireframe, flatShading: true });
+    const accentMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.3, metalness: 0.4, emissive: accent, emissiveIntensity: 0.35, wireframe, flatShading: true });
+
+    const avatar = new THREE.Group();
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.62, 1.5, 8), bodyMat);
+    torso.position.y = 0.2;
+    avatar.add(torso);
+    const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.52, 1), accentMat);
+    head.position.y = 1.35;
+    avatar.add(head);
+
+    const armL = new THREE.Group(); armL.position.set(-0.78, 0.75, 0);
+    const armLMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.1, 8), bodyMat);
+    armLMesh.position.y = -0.55; armLMesh.rotation.z = 0.15;
+    armL.add(armLMesh); avatar.add(armL);
+
+    const armR = new THREE.Group(); armR.position.set(0.78, 0.75, 0);
+    const armRMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.1, 8), bodyMat);
+    armRMesh.position.y = -0.55; armRMesh.rotation.z = -0.15;
+    armR.add(armRMesh); avatar.add(armR);
+
+    const laptop = new THREE.Group();
+    const base = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.06, 0.75), accentMat);
+    const screen = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 0.05), accentMat);
+    screen.position.set(0, 0.35, -0.35); screen.rotation.x = -0.25;
+    laptop.add(base); laptop.add(screen);
+    laptop.position.set(0, -0.55, 0.9);
+    avatar.add(laptop);
+
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.02, 8, 48), accentMat);
+    ring.rotation.x = Math.PI / 2.1; ring.position.y = -1.15;
+    avatar.add(ring);
+
+    avatar.position.y = -0.3;
+    avatar.scale.setScalar(1.5);
+    scene.add(avatar);
+
+    this.three = { renderer, scene, camera, avatar, laptop, armL, armR };
+  }
+
+  handleResize = () => {
+    if (!this.three || !this.canvas) return;
+    const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
+    this.three.renderer.setSize(w, h, false);
+    this.three.camera.aspect = w / h;
+    this.three.camera.updateProjectionMatrix();
+  };
+
+  handleMouseMove = (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; };
+
+  computeScrollTarget() {
+    const ids = this.sectionIds;
+    const positions = ids.map(id => { const el = document.getElementById(id); return el ? el.offsetTop : 0; });
+    const y = window.scrollY + window.innerHeight * 0.4;
+    let idx = 0;
+    for (let i = 0; i < positions.length - 1; i++) { if (y >= positions[i]) idx = i; }
+    let frac = 0;
+    const next = positions[idx + 1];
+    if (next !== undefined && next > positions[idx]) frac = Math.min(1, Math.max(0, (y - positions[idx]) / (next - positions[idx])));
+    const a = this.keyframes[idx], b = this.keyframes[Math.min(idx + 1, this.keyframes.length - 1)];
+    const lerp = (x, y2, t) => x + (y2 - x) * t;
+    return { rotY: lerp(a.rotY, b.rotY, frac), armL: lerp(a.armL, b.armL, frac), armR: lerp(a.armR, b.armR, frac), lap: lerp(a.lap, b.lap, frac) };
+  }
+
+  tick = () => {
+    this.target = this.computeScrollTarget();
+    const ease = 0.08;
+    this.pose.rotY += (this.target.rotY - this.pose.rotY) * ease;
+    this.pose.armL += (this.target.armL - this.pose.armL) * ease;
+    this.pose.armR += (this.target.armR - this.pose.armR) * ease;
+    this.pose.lap += (this.target.lap - this.pose.lap) * ease;
+
+    if (this.three) {
+      const { avatar, laptop, armL, armR, renderer, scene, camera } = this.three;
+      avatar.rotation.y = this.pose.rotY + this.dragOffset;
+      armL.rotation.z = this.pose.armL;
+      armR.rotation.z = this.pose.armR;
+      laptop.visible = this.pose.lap > 0.03;
+      laptop.scale.setScalar(Math.max(0.001, this.pose.lap));
+      avatar.position.y = -0.3 + Math.sin(performance.now() / 1400) * 0.06;
+      renderer.render(scene, camera);
+    }
+
+    if (this.cursorDot) {
+      this.cursorDot.style.display = this.isFinePointer ? 'block' : 'none';
+      this.cursorDot.style.left = this.mouse.x + 'px';
+      this.cursorDot.style.top = this.mouse.y + 'px';
+    }
+    if (this.cursorRing) {
+      this.cursorRing.style.display = this.isFinePointer ? 'block' : 'none';
+      this.ringPos.x += (this.mouse.x - this.ringPos.x) * 0.18;
+      this.ringPos.y += (this.mouse.y - this.ringPos.y) * 0.18;
+      this.cursorRing.style.left = this.ringPos.x + 'px';
+      this.cursorRing.style.top = this.ringPos.y + 'px';
+    }
+
+    this.raf = requestAnimationFrame(this.tick);
+  };
+
+  renderVals() {
+    const experience = [
+      { dates: '2024 — Present', role: 'Senior Software Engineer', company: 'Placeholder Co', description: 'Leading development of interactive product surfaces; mentoring engineers; owning performance budgets.' },
+      { dates: '2022 — 2024', role: 'Software Engineer', company: 'Studio Example', description: 'Built customer-facing web apps end to end, from design systems to deployment pipelines.' },
+      { dates: '2020 — 2022', role: 'Frontend Engineer', company: 'Startup Name', description: 'Shipped the core web product from 0 to 1; introduced motion and component tooling.' },
+      { dates: '2019 — 2020', role: 'Engineering Intern', company: 'Big Tech Inc', description: 'Contributed to internal tooling used by hundreds of engineers daily.' }
+    ];
+    const skillGroups = [
+      { title: 'Frontend', items: ['React', 'TypeScript', 'Three.js', 'CSS/Motion'] },
+      { title: 'Backend', items: ['Node.js', 'Postgres', 'GraphQL', 'Redis'] },
+      { title: 'Cloud & Tools', items: ['AWS', 'Docker', 'CI/CD', 'Figma'] },
+      { title: 'Currently learning', items: ['WebGPU', 'Rust', 'Latte pours'] }
+    ];
+    const projects = [
+      { name: 'Project One', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['React', 'Three.js'] },
+      { name: 'Project Two', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['Node', 'Postgres'] },
+      { name: 'Project Three', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['TypeScript', 'WebGL'] },
+      { name: 'Project Four', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['Design', 'Motion'] }
+    ];
+
+    return {
+      accent: this.props.accentColor || '#4dd9d0',
+      mobileOpen: this.state.mobileOpen,
+      toggleMobile: () => this.setState(s => ({ mobileOpen: !s.mobileOpen })),
+      setCanvas: (el) => { this.canvas = el; if (el && !this.three) this.setupThree(); },
+      setCursorDot: (el) => { this.cursorDot = el; },
+      setCursorRing: (el) => { this.cursorRing = el; },
+      onMouseMove: () => {},
+      onHoverStart: (e) => { if (this.cursorRing) { this.cursorRing.style.width = '52px'; this.cursorRing.style.height = '52px'; this.cursorRing.style.opacity = '1'; } },
+      onHoverEnd: () => { if (this.cursorRing) { this.cursorRing.style.width = '32px'; this.cursorRing.style.height = '32px'; this.cursorRing.style.opacity = '.6'; } },
+      scrollToSection: (e) => {
+        e.preventDefault();
+        const id = e.currentTarget.getAttribute('data-target');
+        const el = document.getElementById(id);
+        if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: 'smooth' });
+        this.setState({ mobileOpen: false });
+      },
+      onDragStart: (e) => { this.dragging = true; this.dragStartX = e.clientX; this.dragBaseOffset = this.dragOffset; this.canvas.style.cursor = 'grabbing'; },
+      onDragMove: (e) => { if (this.dragging) this.dragOffset = this.dragBaseOffset + (e.clientX - this.dragStartX) * 0.01; },
+      onDragEnd: () => { this.dragging = false; if (this.canvas) this.canvas.style.cursor = 'grab'; },
+      experience, skillGroups, projects,
+      formName: this.state.formName,
+      formEmail: this.state.formEmail,
+      formMessage: this.state.formMessage,
+      formSubmitted: this.state.formSubmitted,
+      notSubmitted: !this.state.formSubmitted,
+      onNameChange: (e) => this.setState({ formName: e.target.value }),
+      onEmailChange: (e) => this.setState({ formEmail: e.target.value }),
+      onMessageChange: (e) => this.setState({ formMessage: e.target.value }),
+      onSubmit: (e) => { e.preventDefault(); this.setState({ formSubmitted: true }); }
+    };
+  }
+}
+
+</script>
+</body>
+</html>
