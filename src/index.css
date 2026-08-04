@@ -2,7 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* shadcn/ui design tokens (Tailwind 3 syntax — the source snippet used
+     Tailwind 4's `@theme inline`, which this project doesn't use). */
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0 0 0);
+    --card: oklch(0.94 0 0);
+    --card-foreground: oklch(0 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0 0 0);
+    --primary: oklch(0 0 0);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.5 0 0);
+    --secondary-foreground: oklch(1 0 0);
+    --muted: oklch(0.94 0 0);
+    --muted-foreground: oklch(0 0 0);
+    --accent: oklch(0.8 0 0);
+    --accent-foreground: oklch(0 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(0.5 0 0);
+    --input: oklch(1 0 0);
+    --ring: oklch(0 0 0 / 0.2);
+    --chart-1: oklch(0 0 0);
+    --chart-2: oklch(0.5 0 0);
+    --chart-3: oklch(0.94 0 0);
+    --chart-4: oklch(0.8 0 0);
+    --chart-5: oklch(0 0 0);
+    --radius: 0.5rem;
+    --sidebar: oklch(0.94 0 0);
+    --sidebar-foreground: oklch(0 0 0);
+    --sidebar-primary: oklch(0 0 0);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.8 0 0);
+    --sidebar-accent-foreground: oklch(0 0 0);
+    --sidebar-border: oklch(0.5 0 0);
+    --sidebar-ring: oklch(0 0 0 / 0.2);
+  }
+
+  .dark {
+    --background: oklch(0 0 0);
+    --foreground: oklch(1 0 0);
+    --card: oklch(0.1 0 0);
+    --card-foreground: oklch(1 0 0);
+    --popover: oklch(0 0 0);
+    --popover-foreground: oklch(1 0 0);
+    --primary: oklch(1 0 0);
+    --primary-foreground: oklch(0 0 0);
+    --secondary: oklch(0.3 0 0);
+    --secondary-foreground: oklch(1 0 0);
+    --muted: oklch(0.3 0 0);
+    --muted-foreground: oklch(0.7 0 0);
+    --accent: oklch(0.3 0 0);
+    --accent-foreground: oklch(1 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --border: oklch(0.3 0 0);
+    --input: oklch(0.3 0 0);
+    --ring: oklch(1 0 0 / 0.2);
+    --chart-1: oklch(1 0 0);
+    --chart-2: oklch(0.7 0 0);
+    --chart-3: oklch(0.5 0 0);
+    --chart-4: oklch(0.3 0 0);
+    --chart-5: oklch(1 0 0);
+    --sidebar: oklch(0.1 0 0);
+    --sidebar-foreground: oklch(1 0 0);
+    --sidebar-primary: oklch(1 0 0);
+    --sidebar-primary-foreground: oklch(0 0 0);
+    --sidebar-accent: oklch(0.3 0 0);
+    --sidebar-accent-foreground: oklch(1 0 0);
+    --sidebar-border: oklch(0.3 0 0);
+    --sidebar-ring: oklch(1 0 0 / 0.2);
+  }
+}
+
 html { scroll-behavior: auto; }
 body { margin: 0; }
 ::selection { background: #4dd9d0; color: #0a0a0f; }
 input::placeholder, textarea::placeholder { color: #5a5a68; }
+
+/* Hide the native pointer wherever CustomCursor takes over. Gated on the same
+   media query the component uses, so touch devices keep their normal cursor. */
+@media (pointer: fine) {
+  html, body, a, button, input, textarea, select, label, summary, [role='button'] {
+    cursor: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

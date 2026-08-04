@@ -20,9 +20,10 @@ export default function Nav() {
   const labels: Record<string, string> = { about: 'About', experience: 'Experience', skills: 'Skills', projects: 'Work', contact: 'Contact' };
 
   return (
-    <nav className="sticky top-0 z-30 flex items-center justify-between px-6 md:px-14 py-4 bg-ink/70 backdrop-blur-md border-b border-line">
+    // Deliberately not sticky: it scrolls away and FloatingMenu takes over.
+    <nav className="relative z-30 flex items-center justify-between px-6 md:px-14 py-4 bg-ink/70 backdrop-blur-md border-b border-line">
       <Link to="/" className="font-display font-bold text-base tracking-tight">
-        alex<span className="text-accent">.dev</span>
+        dylan<span className="text-accent">.dev</span>
       </Link>
       <div className="hidden md:flex gap-7 text-[13px] font-medium text-[#c2c2cc]">
         {sectionIds.filter((id) => id !== 'hero').map((id) => (

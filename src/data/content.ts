@@ -19,14 +19,4 @@ export const projects = [
   { name: 'Project Four', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['Design', 'Motion'] },
 ];
 
-// Pose keyframes the avatar interpolates between as the hero → contact sections scroll by.
-export const avatarKeyframes = [
-  { rotY: 0.3, armL: -0.4, armR: -0.5, lap: 1 },
-  { rotY: -0.5, armL: 0.2, armR: -0.1, lap: 0.15 },
-  { rotY: 0.6, armL: -1.0, armR: 0.3, lap: 0 },
-  { rotY: -0.35, armL: -0.7, armR: -0.7, lap: 0 },
-  { rotY: 0.4, armL: -0.9, armR: 0.1, lap: 0 },
-  { rotY: 0, armL: 0.9, armR: -0.1, lap: 0 },
-];
-
 export const sectionIds = ['hero', 'about', 'experience', 'skills', 'projects', 'contact'];
