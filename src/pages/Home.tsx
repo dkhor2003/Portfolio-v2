@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import GlobeScene from '@/components/GlobeScene';
 import JourneySection from '@/components/JourneyCard';
+import SkillCarousel from '@/components/SkillCarousel';
 import { Reveal, Rise, RevealGroup, RevealItem, MaskLine } from '../components/motion/Reveal';
-import { experience, skillGroups, projects } from '../data/content';
+import { experience, projects } from '../data/content';
 import { journey } from '../data/journey';
 
 export default function Home() {
@@ -138,23 +139,16 @@ export default function Home() {
         </RevealGroup>
       </section>
 
-      <section id="skills" className="relative z-10 py-24 px-6 md:px-20 max-w-6xl mx-auto">
-        <Reveal>
-          <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Skills</div>
-          <h2 className="font-display font-semibold text-3xl md:text-4xl mb-11">Tools of the trade</h2>
-        </Reveal>
-        <RevealGroup className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5">
-          {skillGroups.map((g) => (
-            <RevealItem key={g.title} className="bg-card border border-line rounded-2xl p-6 transition-colors hover:border-accent/40">
-              <div className="font-display font-semibold text-[15px] mb-4">{g.title}</div>
-              <div className="flex flex-wrap gap-2">
-                {g.items.map((s) => (
-                  <span key={s} className="hoverable font-mono text-xs px-3 py-1.5 rounded-full border border-white/10 text-[#c2c2cc] hover:border-accent hover:text-accent hover:-translate-y-0.5 transition-all">{s}</span>
-                ))}
-              </div>
-            </RevealItem>
-          ))}
-        </RevealGroup>
+      {/* Full-bleed: the marquees run edge to edge, the copy stays in the grid. */}
+      <section id="skills" className="relative z-10 py-24 overflow-hidden">
+        <div className="px-6 md:px-20 max-w-6xl mx-auto">
+          <Reveal>
+            <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Skills</div>
+            <h2 className="font-display font-semibold text-3xl md:text-4xl">Tools of the trade</h2>
+            <p className="text-[15px] text-muted mt-4 max-w-md">Hover a logo to pause its row and see where I stand with it.</p>
+          </Reveal>
+        </div>
+        <SkillCarousel />
       </section>
 
       <section id="projects" className="relative z-10 py-24 px-6 md:px-20 max-w-6xl mx-auto">
@@ -220,7 +214,7 @@ export default function Home() {
       </section>
 
       <footer className="relative z-10 px-6 md:px-20 py-10 flex justify-between items-center text-dim text-xs border-t border-line max-w-6xl mx-auto">
-        <span>© 2026 Alex Rivera</span>
+        <span>© 2026 Dylan Khor</span>
         <span className="font-mono">built with d3 &amp; too much coffee</span>
       </footer>
     </>

@@ -25,7 +25,7 @@ export default function LatteArt() {
       </section>
 
       <footer className="px-6 md:px-20 py-10 flex justify-between items-center text-dim text-xs border-t border-line max-w-6xl mx-auto">
-        <span>© 2026 Alex Rivera</span>
+        <span>© 2026 Dylan Khor</span>
         <Link to="/" className="text-dim font-mono">← portfolio</Link>
       </footer>
     </>
