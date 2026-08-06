@@ -78,8 +78,8 @@ export default function Home() {
             className="hidden md:flex flex-col items-end gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-dim"
           >
             <span className="flex items-center gap-2 text-muted">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              Available for work
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+              Busy, but open to hear
             </span>
             <span>41.6°N / 93.6°W</span>
           </Rise>
@@ -215,7 +215,7 @@ export default function Home() {
 
       <footer className="relative z-10 px-6 md:px-20 py-10 flex justify-between items-center text-dim text-xs border-t border-line max-w-6xl mx-auto">
         <span>© 2026 Dylan Khor</span>
-        <span className="font-mono">built with d3 &amp; too much coffee</span>
+        <span className="font-mono">BUILT WITH TOO MUCH COFFEE</span>
       </footer>
     </>
   );

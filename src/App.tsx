@@ -9,6 +9,7 @@ import { ScrollProgress } from './components/motion/Reveal';
 import { loadGlobeData } from './lib/globe-data';
 import Home from './pages/Home';
 import LatteArt from './pages/LatteArt';
+import NotFound from './pages/NotFound';
 
 /** How long the curtain stays up, at minimum. Boot waits for the globe too. */
 const BOOT_MS = 1500;
@@ -86,6 +87,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/latte-art" element={<LatteArt />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </div>

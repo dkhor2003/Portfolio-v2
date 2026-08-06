@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import * as d3 from "d3"
 import { loadGlobeData, type GlobeData } from "@/lib/globe-data"
+import { drawWireframe } from "@/lib/globe-render"
 import { heroPin, journey, type Pin } from "@/data/journey"
 
 export interface GlobeSceneProps {
@@ -373,57 +374,6 @@ export default function GlobeScene({
       ctx.restore()
     }
 
-    /**
-     * Places every halftone dot by rotating its unit vector directly. d3's
-     * rotation is a spin about the poles followed by a tilt about the y axis,
-     * which is two cheap 2D rotations here.
-     *
-     * Dots on the far side stay visible while the globe spins — that
-     * see-through wireframe is the look — but fade out as it locks onto a stop,
-     * so the parked frame reads cleanly as one place.
-     */
-    const drawDots = (cx: number, cy: number, r: number, s: number, lock: number) => {
-      if (!data) return
-      const dots = data.dots
-      const cosA = Math.cos(lon * DEG)
-      const sinA = Math.sin(lon * DEG)
-      const cosB = Math.cos(lat * DEG)
-      const sinB = Math.sin(lat * DEG)
-      // Squares, not circles: at two-ish pixels they are indistinguishable, and
-      // tessellating ten thousand arcs a frame is not.
-      const dotR = 1.2 * s
-      const dotSize = dotR * 2
-      const backAlpha = lerp(0.85, 0.06, lock)
-
-      for (let pass = 0; pass < 2; pass++) {
-        const front = pass === 1
-        const alpha = front ? 1 : backAlpha
-        if (alpha < 0.03) continue
-
-        ctx.beginPath()
-        for (let i = 0; i < dots.length; i += 3) {
-          const x0 = dots[i]
-          const y0 = dots[i + 1]
-          const z0 = dots[i + 2]
-          // Spin about the poles, then tilt. The tilt is about the y axis, so
-          // the y component is already final after the spin.
-          const x1 = cosA * x0 - sinA * y0
-          const y1 = sinA * x0 + cosA * y0
-          const x2 = x1 * cosB - z0 * sinB
-          if (x2 > 0 !== front) continue
-          const z2 = x1 * sinB + z0 * cosB
-          const px = cx + r * y1
-          const py = cy - r * z2
-          if (px < -2 || px > vw + 2 || py < -2 || py > vh + 2) continue
-          ctx.rect(px - dotR, py - dotR, dotSize, dotSize)
-        }
-        ctx.globalAlpha = alpha
-        ctx.fillStyle = "#999999"
-        ctx.fill()
-      }
-      ctx.globalAlpha = 1
-    }
-
     const render = (
       cx: number,
       cy: number,
@@ -466,34 +416,24 @@ export default function GlobeScene({
         ctx.fillRect(cx - r * 1.5, cy - r * 1.5, r * 3, r * 3)
       }
 
-      // Sphere edge. Unfilled, so the page shows through the wireframe.
-      ctx.beginPath()
-      ctx.arc(cx, cy, r, 0, 2 * Math.PI)
-      ctx.strokeStyle = "#ffffff"
-      ctx.lineWidth = s
-      ctx.globalAlpha = 0.18
-      ctx.stroke()
-      ctx.globalAlpha = 1
-
-      if (data) {
-        ctx.beginPath()
-        path(d3.geoGraticule()())
-        ctx.strokeStyle = "#ffffff"
-        ctx.lineWidth = s
-        ctx.globalAlpha = 0.14
-        ctx.stroke()
-
-        ctx.beginPath()
-        data.land.features.forEach((feature: any) => path(feature))
-        ctx.strokeStyle = "#ffffff"
-        ctx.lineWidth = s
-        ctx.globalAlpha = lerp(0.5, 0.72, lock)
-        ctx.stroke()
-        ctx.globalAlpha = 1
-
-        drawDots(cx, cy, r, s, lock)
-        drawPins(pins.a, pins.b, pins.t, pins.e, s, pins.fade)
-      }
+      // Dots on the far side stay visible while the globe spins — that
+      // see-through wireframe is the look — but fade out as it locks onto a
+      // stop, so the parked frame reads cleanly as one place.
+      drawWireframe(ctx, {
+        data,
+        path,
+        cx,
+        cy,
+        r,
+        lon,
+        lat,
+        s,
+        backAlpha: lerp(0.85, 0.06, lock),
+        landAlpha: lerp(0.5, 0.72, lock),
+        vw,
+        vh,
+      })
+      if (data) drawPins(pins.a, pins.b, pins.t, pins.e, s, pins.fade)
 
       drawReticle(cx, cy, r, lock)
       ctx.restore()
