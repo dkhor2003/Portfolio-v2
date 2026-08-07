@@ -11,7 +11,7 @@ export interface GlobeSceneProps {
   /** Section the globe idles over. */
   heroId?: string
   /** Section the globe must be gone by. */
-  aboutId?: string
+  exitBeforeId?: string
 }
 
 const DEG = Math.PI / 180
@@ -21,6 +21,10 @@ const SPIN = 0.5
 const SCRUB = 0.085
 /** Phase below which the hero globe still accepts a drag. */
 const GRAB_UNTIL = 0.25
+/** Pin caption timings, in milliseconds: per note, to type, to fade out. */
+const NOTE_CYCLE = 4600
+const NOTE_TYPE = 1000
+const NOTE_FADE = 700
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
@@ -57,7 +61,7 @@ interface Frame {
 export default function GlobeScene({
   markerColor = "#4dd9d0",
   heroId = "hero",
-  aboutId = "about",
+  exitBeforeId = "skills",
 }: GlobeSceneProps) {
   const layerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -119,7 +123,7 @@ export default function GlobeScene({
       }
 
       const hero = top(heroId) ?? { top: 0, height: vh }
-      const about = top(aboutId)
+      const exitBefore = top(exitBeforeId)
 
       // Idle placement mirrors the original hero layout: a 620px box, inset 4vw
       // from the right edge on desktop, centred on narrow screens.
@@ -146,9 +150,15 @@ export default function GlobeScene({
       })
 
       const exitR = short * 0.18
+      // Park against the right edge of the hero's type frame rather than the
+      // viewport, so on a wide screen the globe comes in to meet the headline
+      // instead of the two drifting to opposite edges.
+      const frame = document.getElementById("hero-frame")?.getBoundingClientRect()
+      const heroRight = frame ? frame.right : vw - vw * 0.04
+
       frames = [
         {
-          cx: wide ? vw - vw * 0.04 - box / 2 : vw / 2,
+          cx: wide ? heroRight - box / 2 : vw / 2,
           cy: 0, // filled in live
           r: heroR,
           rot: null,
@@ -162,7 +172,7 @@ export default function GlobeScene({
       ]
 
       const lastStop = stops.length ? stops[stops.length - 1].anchor : 0
-      const exitAnchor = about ? about.top - vh * 0.2 : lastStop + vh
+      const exitAnchor = exitBefore ? exitBefore.top - vh * 0.2 : lastStop + vh
       const anchors = [0, ...stops.map((s) => s.anchor), exitAnchor]
 
       holdA = anchors.map((a) => a - vh * 0.2)
@@ -289,7 +299,50 @@ export default function GlobeScene({
       ctx.fill()
       ctx.restore()
 
-      return { x, y: tailY - 9 * s, fade }
+      return { x, y: tailY - 9 * s, dotY: y, fade }
+    }
+
+    /**
+     * Types a caption out under the pin, cycling through the pin's notes. The
+     * hero pin uses it to say outright that this is where I am now — the label
+     * alone only names a place, it does not claim it.
+     */
+    const drawNote = (x: number, y: number, notes: string[], alpha: number, s: number) => {
+      const note = notes[Math.floor(elapsedMs / NOTE_CYCLE) % notes.length]
+      const t = elapsedMs % NOTE_CYCLE
+      const shown = note.slice(0, Math.round(clamp01(t / NOTE_TYPE) * note.length))
+      // Fade the whole line out before the next one starts typing.
+      const out = 1 - clamp01((t - (NOTE_CYCLE - NOTE_FADE)) / NOTE_FADE)
+      const a = alpha * out
+      if (a <= 0.02) return
+
+      ctx.save()
+      ctx.globalAlpha = a
+      ctx.font = `${12 * s}px ui-monospace, SFMono-Regular, Menlo, monospace`
+      // Left-aligned from where the finished line would start, so characters
+      // land in place instead of the whole line shuffling as it types.
+      ctx.textAlign = "left"
+      ctx.textBaseline = "top"
+      const startX = x - ctx.measureText(note).width / 2
+      const shownW = ctx.measureText(shown).width
+      const caretOn = shown.length < note.length || elapsedMs % 940 < 470
+      const w = shownW + (caretOn ? 7 * s : 0)
+
+      // A backing chip, grown to whatever has been typed so far. Without it the
+      // caption is unreadable over the halftone dots.
+      const padX = 7 * s
+      const padY = 4 * s
+      const h = 13 * s
+      ctx.fillStyle = "rgba(10, 10, 15, 0.72)"
+      ctx.beginPath()
+      if (ctx.roundRect) ctx.roundRect(startX - padX, y - padY, w + padX * 2, h + padY * 2, 4 * s)
+      else ctx.rect(startX - padX, y - padY, w + padX * 2, h + padY * 2)
+      ctx.fill()
+
+      ctx.fillStyle = "#dcdce6"
+      ctx.fillText(shown, startX, y)
+      if (caretOn) ctx.fillRect(startX + shownW + 2 * s, y + 1.5 * s, 4 * s, 11 * s)
+      ctx.restore()
     }
 
     const drawLabel = (x: number, y: number, text: string, alpha: number, s: number) => {
@@ -332,6 +385,12 @@ export default function GlobeScene({
             drawLabel(anchor.x, anchor.y, a.label, anchor.fade * (1 - t), s)
             drawLabel(anchor.x, anchor.y, b.label, anchor.fade * t, s)
           }
+          // Iowa and Wichita are close enough to glide as one pin, so the hero's
+          // caption has to be handled here too — it fades out as the glide runs.
+          const lead = t < 0.5 ? a : b
+          if (lead.notes) {
+            drawNote(anchor.x, anchor.dotY + 16 * s, lead.notes, anchor.fade * clamp01(1 - t * 2), s)
+          }
           return
         }
       }
@@ -341,7 +400,9 @@ export default function GlobeScene({
       ] as const) {
         if (!pin || alpha * fade <= 0.01) continue
         const anchor = drawPinBody(pin, alpha * fade, s)
-        if (anchor) drawLabel(anchor.x, anchor.y, pin.label, anchor.fade, s)
+        if (!anchor) continue
+        drawLabel(anchor.x, anchor.y, pin.label, anchor.fade, s)
+        if (pin.notes) drawNote(anchor.x, anchor.dotY + 16 * s, pin.notes, anchor.fade, s)
       }
     }
 
@@ -572,7 +633,7 @@ export default function GlobeScene({
       window.removeEventListener("scroll", onScroll)
       hit.removeEventListener("pointerdown", onPointerDown)
     }
-  }, [heroId, aboutId, markerColor])
+  }, [heroId, exitBeforeId, markerColor])
 
   return (
     <>

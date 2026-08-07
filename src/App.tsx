@@ -76,7 +76,10 @@ export default function App() {
   const stage = useRouteCurtain();
 
   return (
-    <div className="bg-ink text-white font-body min-h-screen relative overflow-x-hidden">
+    // overflow-x-clip, not -hidden: `hidden` turns this into a scroll container,
+    // which breaks `position: sticky` for anything inside it (the projects
+    // stage). `clip` contains the same overflow without that side effect.
+    <div className="bg-ink text-white font-body min-h-screen relative overflow-x-clip">
       {stage !== 'gone' && <LatteLoader fading={stage === 'fading'} />}
       <Backdrop />
       <CustomCursor />

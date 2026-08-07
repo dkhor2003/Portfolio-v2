@@ -58,6 +58,7 @@ export default {
         bounce2: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(8px)' } },
         blink: { '0%,49%': { opacity: '1' }, '50%,100%': { opacity: '0' } },
         floaty: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-9px)' } },
+        holoScan: { from: { transform: 'translateY(-100%)' }, to: { transform: 'translateY(420%)' } },
       },
       animation: {
         fillCup: 'fillCup 1.6s ease-out forwards',
@@ -66,6 +67,7 @@ export default {
         bounce2: 'bounce2 1.8s ease-in-out infinite',
         blink: 'blink 1.06s steps(1, end) infinite',
         floaty: 'floaty 6s ease-in-out infinite',
+        holoScan: 'holoScan 4.5s linear infinite',
       },
     },
   },

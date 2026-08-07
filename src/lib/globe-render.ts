@@ -22,6 +22,13 @@ export interface WireframeOptions {
   /** Canvas bounds, used to skip dots that fall outside it. */
   vw: number
   vh: number
+  /**
+   * Overrides the cull box, in the coordinates the dots are computed in. Needed
+   * when the caller has a canvas transform in play: a dot outside the viewport
+   * before the transform may well be inside it after, so culling against the
+   * viewport would drop dots that should be drawn.
+   */
+  cull?: { minX: number; minY: number; maxX: number; maxY: number }
 }
 
 /**
@@ -40,6 +47,7 @@ function drawDots(ctx: CanvasRenderingContext2D, o: WireframeOptions) {
   // tessellating ten thousand arcs a frame is not.
   const dotR = 1.2 * o.s
   const dotSize = dotR * 2
+  const cull = o.cull ?? { minX: -2, minY: -2, maxX: o.vw + 2, maxY: o.vh + 2 }
 
   for (let pass = 0; pass < 2; pass++) {
     const front = pass === 1
@@ -60,7 +68,7 @@ function drawDots(ctx: CanvasRenderingContext2D, o: WireframeOptions) {
       const z2 = x1 * sinB + z0 * cosB
       const px = o.cx + o.r * y1
       const py = o.cy - o.r * z2
-      if (px < -2 || px > o.vw + 2 || py < -2 || py > o.vh + 2) continue
+      if (px < cull.minX || px > cull.maxX || py < cull.minY || py > cull.maxY) continue
       ctx.rect(px - dotR, py - dotR, dotSize, dotSize)
     }
     ctx.globalAlpha = alpha

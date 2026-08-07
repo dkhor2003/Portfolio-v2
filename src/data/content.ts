@@ -19,4 +19,6 @@ export const projects = [
   { name: 'Project Four', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['Design', 'Motion'] },
 ];
 
-export const sectionIds = ['hero', 'about', 'experience', 'skills', 'projects', 'contact'];
+// The about and experience sections were dropped — the journey stops between
+// the hero and the skills carousel tell that story instead.
+export const sectionIds = ['hero', 'skills', 'projects', 'contact'];

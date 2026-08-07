@@ -38,8 +38,6 @@ export default function FloatingMenu() {
 
   const navItems: NavItem[] = [
     { name: 'Home', icon: Home, onSelect: () => goToSection('hero') },
-    { name: 'About', icon: User, onSelect: () => goToSection('about') },
-    { name: 'Experience', icon: Briefcase, onSelect: () => goToSection('experience') },
     { name: 'Skills', icon: Wrench, onSelect: () => goToSection('skills') },
     { name: 'Work', icon: FolderOpen, onSelect: () => goToSection('projects') },
     { name: 'Contact', icon: Mail, onSelect: () => goToSection('contact') },

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import GlobeScene from '@/components/GlobeScene';
 import JourneySection from '@/components/JourneyCard';
 import SkillCarousel from '@/components/SkillCarousel';
-import { Reveal, Rise, RevealGroup, RevealItem, MaskLine } from '../components/motion/Reveal';
-import { experience, projects } from '../data/content';
+import ProjectHologram from '@/components/ProjectHologram';
+import { Reveal, Rise, MaskLine } from '../components/motion/Reveal';
 import { journey } from '../data/journey';
 
 export default function Home() {
@@ -44,16 +44,23 @@ export default function Home() {
           Full-stack web apps. APIs and data pipelines. Interactive front-ends. Latte art on request.
         </Rise>
 
-        {/* The composition: oversized condensed type with a serif italic accent. */}
-        <h1 className="relative z-10 px-6 md:px-14 font-poster uppercase leading-[0.84] tracking-[-0.015em] text-[clamp(3.2rem,13.5vw,12.5rem)] pointer-events-none select-none">
-          <MaskLine delay={0.15}>
-            <span>Software</span>{' '}
-            {/* <span className="font-editorial italic lowercase tracking-[-0.01em] text-[0.82em] pr-[0.06em]">
-              full&#8209;stack
-            </span> */}
-          </MaskLine>
-          <MaskLine delay={0.28}>Developer</MaskLine>
-        </h1>
+        {/* The composition: oversized condensed type with a serif italic accent.
+            Capped and centred so the type and the globe stay one composition —
+            left-flush type on a wide screen leaves a hole between the two.
+            GlobeScene measures #hero-frame to park the globe at its right edge. */}
+        <div className="relative z-10 w-full max-w-[1600px] mx-auto px-6 md:px-14">
+          <div id="hero-frame">
+            <h1 className="font-poster uppercase leading-[0.84] tracking-[-0.015em] text-[clamp(3.2rem,13.5vw,12.5rem)] pointer-events-none select-none">
+              <MaskLine delay={0.15}>
+                <span>Software</span>{' '}
+                {/* <span className="font-editorial italic lowercase tracking-[-0.01em] text-[0.82em] pr-[0.06em]">
+                  full&#8209;stack
+                </span> */}
+              </MaskLine>
+              <MaskLine delay={0.28}>Developer</MaskLine>
+            </h1>
+          </div>
+        </div>
 
         {/* Bottom rail */}
         <div className="absolute bottom-8 inset-x-0 px-6 md:px-14 z-20 flex items-end justify-between gap-6">
@@ -97,48 +104,6 @@ export default function Home() {
         <JourneySection key={stop.id} stop={stop} index={i} />
       ))}
 
-      <section
-        id="about"
-        className="relative z-10 min-h-svh flex items-center px-6 md:px-20 py-28"
-      >
-        <div className="relative grid md:grid-cols-[1.2fr_1fr] gap-14 max-w-6xl mx-auto w-full">
-          <Reveal>
-            <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">About</div>
-            <h2 className="font-display font-semibold text-3xl md:text-4xl leading-tight">I like building things that feel alive.</h2>
-            <p className="mt-5 text-[15.5px] leading-relaxed text-[#b0b0bc] max-w-lg">
-              Placeholder bio — swap in your own story. I'm a software developer who enjoys the intersection of engineering
-              and motion: interfaces with real physics, transitions that feel inevitable, and code that stays fast under
-              pressure. When I'm not shipping features, I'm steaming milk and chasing symmetric rosettas.
-            </p>
-          </Reveal>
-          <RevealGroup className="grid grid-cols-2 gap-4 content-start">
-            {[['5+', 'Years building software'], ['30+', 'Shipped projects'], ['IA', 'Based in, open to remote'], ['☕', 'Certified latte artist*']].map(([n, l]) => (
-              <RevealItem key={l} className="bg-card border border-line rounded-xl p-5 transition-colors hover:border-accent/40">
-                <div className="font-display font-bold text-2xl text-accent">{n}</div>
-                <div className="text-xs text-muted mt-1">{l}</div>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-        </div>
-      </section>
-
-      <section id="experience" className="relative z-10 py-24 px-6 md:px-20 max-w-3xl mx-auto">
-        <Reveal>
-          <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Experience</div>
-          <h2 className="font-display font-semibold text-3xl md:text-4xl mb-12">Where I've worked</h2>
-        </Reveal>
-        <RevealGroup stagger={0.12} className="relative pl-7 border-l border-white/10 flex flex-col gap-11">
-          {experience.map((job) => (
-            <RevealItem key={job.role} className="relative">
-              <div className="absolute -left-[33px] top-1 w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_0_4px_#0a0a0f,0_0_12px_#4dd9d0]" />
-              <div className="font-mono text-xs text-dim mb-1.5">{job.dates}</div>
-              <div className="font-display font-semibold text-lg">{job.role} · <span className="text-muted font-medium">{job.company}</span></div>
-              <p className="text-sm text-[#a4a4b0] mt-2 leading-relaxed max-w-xl">{job.description}</p>
-            </RevealItem>
-          ))}
-        </RevealGroup>
-      </section>
-
       {/* Full-bleed: the marquees run edge to edge, the copy stays in the grid. */}
       <section id="skills" className="relative z-10 py-24 overflow-hidden">
         <div className="px-6 md:px-20 max-w-6xl mx-auto">
@@ -151,33 +116,13 @@ export default function Home() {
         <SkillCarousel />
       </section>
 
-      <section id="projects" className="relative z-10 py-24 px-6 md:px-20 max-w-6xl mx-auto">
-        <Reveal>
-          <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Selected work</div>
-          <h2 className="font-display font-semibold text-3xl md:text-4xl mb-11">Things I've built</h2>
-        </Reveal>
-        <RevealGroup stagger={0.1} className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
-          {projects.map((p) => (
-            <RevealItem
-              key={p.name}
-              className="cursor-view group bg-card border border-line rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20"
-            >
-              <div className="h-40 bg-[#181820] flex items-center justify-center text-dim font-mono text-[11px] overflow-hidden">
-                <span className="transition-transform duration-500 group-hover:scale-110">[ project screenshot ]</span>
-              </div>
-              <div className="p-5.5">
-                <div className="font-display font-semibold text-[17px]">{p.name}</div>
-                <p className="text-sm text-[#a4a4b0] mt-2 leading-relaxed">{p.description}</p>
-                <div className="flex flex-wrap gap-1.5 mt-3.5">
-                  {p.tags.map((t) => <span key={t} className="text-[11px] font-mono text-accent bg-accent/10 px-2.5 py-1 rounded-full">{t}</span>)}
-                </div>
-              </div>
-            </RevealItem>
-          ))}
-        </RevealGroup>
-      </section>
+      {/* Half a globe at the bottom of the screen, rolling with the scroll and
+          projecting each project in turn. */}
+      <ProjectHologram />
 
-      <section id="contact" className="relative z-10 pt-28 pb-16 px-6 md:px-20 max-w-xl mx-auto text-center">
+      {/* The top half is left clear: the globe finishes its climb here, hanging
+          underside-down over the heading. */}
+      <section id="contact" className="relative z-10 pt-[46svh] pb-16 px-6 md:px-20 max-w-xl mx-auto text-center">
         <Reveal>
           <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Contact</div>
           <h2 className="font-display font-semibold text-3xl md:text-5xl leading-tight">Let's build something together.</h2>

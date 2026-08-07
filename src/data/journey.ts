@@ -2,6 +2,11 @@ export interface Pin {
   lng: number
   lat: number
   label: string
+  /**
+   * Optional captions typed out under the pin, one after another on a loop.
+   * Only the hero pin uses them, to say plainly that this is where I am now.
+   */
+  notes?: string[]
 }
 
 /** Globe placement while a stop is parked, in viewport fractions. */
@@ -27,7 +32,17 @@ export interface JourneyStop {
 }
 
 /** Where the hero globe idles, before the journey takes over. */
-export const heroPin: Pin = { lng: -93.6, lat: 41.6, label: "IOWA, USA" }
+export const heroPin: Pin = {
+  lng: -93.6,
+  lat: 41.6,
+  label: "IOWA, USA",
+  notes: [
+    "↑ you are looking at my desk",
+    "↑ currently based here",
+    "↑ CST · probably awake",
+    "↑ yes, it snows",
+  ],
+}
 
 const CENTRE: Placement = { x: 0.5, y: 0.5, r: 0.36 }
 const SMALL: Placement = { x: 0.5, y: 0.33, r: 0.3 }

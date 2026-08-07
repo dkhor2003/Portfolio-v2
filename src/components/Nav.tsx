@@ -17,7 +17,7 @@ export default function Nav() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const labels: Record<string, string> = { about: 'About', experience: 'Experience', skills: 'Skills', projects: 'Work', contact: 'Contact' };
+  const labels: Record<string, string> = { skills: 'Skills', projects: 'Work', contact: 'Contact' };
 
   return (
     // Deliberately not sticky: it scrolls away and FloatingMenu takes over.
