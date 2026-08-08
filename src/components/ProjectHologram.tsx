@@ -3,6 +3,8 @@ import * as d3 from 'd3'
 import { useReducedMotion } from 'motion/react'
 import { loadGlobeData, type GlobeData } from '@/lib/globe-data'
 import { drawWireframe } from '@/lib/globe-render'
+import { contactGlobe } from '@/lib/globe-stage'
+import HoloFrame from './HoloFrame'
 import { projects } from '../data/content'
 
 const N = projects.length
@@ -343,6 +345,7 @@ export default function ProjectHologram() {
           visible = false
         }
         panel.style.opacity = '0'
+        contactGlobe.alpha = 0
         return
       }
       if (!visible) {
@@ -372,6 +375,12 @@ export default function ProjectHologram() {
       cyValue += (wanted - cyValue) * k
       const cy = cyValue
       const apexY = cy - r
+
+      // Published so the contact form's rocket can launch off the surface.
+      contactGlobe.cx = cx
+      contactGlobe.cy = cy
+      contactGlobe.r = r
+      contactGlobe.alpha = alpha
 
       // Exactly one turn over the section, offset half a step at each end so it
       // opens and closes with the beam unfocused rather than mid-project. The
@@ -539,7 +548,7 @@ export default function ProjectHologram() {
   )
 }
 
-/** The holographic panel itself — glass, scanlines and corner brackets. */
+/** One project, shown on the shared holographic panel. */
 function HoloPanel({
   index,
   name,
@@ -552,64 +561,34 @@ function HoloPanel({
   tags: string[]
 }) {
   return (
-    <div className="relative">
-      <div className="relative overflow-hidden rounded-[4px] border border-cyan-300/30 bg-[rgba(8,30,46,0.38)] px-7 py-6 shadow-[0_0_70px_-14px_rgba(77,190,255,0.4),inset_0_0_50px_rgba(90,200,255,0.06)] backdrop-blur-[3px]">
-        {/* Scanlines. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.45]"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(180deg, rgba(150,225,255,0.08) 0px, rgba(150,225,255,0.08) 1px, transparent 1px, transparent 4px)',
-          }}
-        />
-        {/* A brighter band sweeping down, as if the image is being redrawn. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 h-24 animate-holoScan"
-          style={{ background: 'linear-gradient(180deg, transparent, rgba(160,235,255,0.11), transparent)' }}
-        />
-
-        <div className="relative">
-          <div className="flex items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-200/70">
-            <span>Project {String(index + 1).padStart(2, '0')}</span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_#67e8f9]" />
-              Signal locked
-            </span>
-          </div>
-
-          <h3
-            className="font-display font-semibold text-[1.6rem] leading-tight mt-3 text-white"
-            style={{ textShadow: '0 0 20px rgba(110,215,255,0.5)' }}
-          >
-            {name}
-          </h3>
-
-          <p className="text-[14.5px] leading-relaxed text-cyan-50/75 mt-3">{description}</p>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-[3px] border border-cyan-300/25 bg-cyan-300/[0.06] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100/85"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
+    <HoloFrame>
+      <div className="flex items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-200/70">
+        <span>Project {String(index + 1).padStart(2, '0')}</span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_#67e8f9]" />
+          Signal locked
+        </span>
       </div>
 
-      {/* Corner brackets, drawn outside the panel edge. */}
-      {[
-        'left-[-5px] top-[-5px] border-l-2 border-t-2',
-        'right-[-5px] top-[-5px] border-r-2 border-t-2',
-        'left-[-5px] bottom-[-5px] border-l-2 border-b-2',
-        'right-[-5px] bottom-[-5px] border-r-2 border-b-2',
-      ].map((pos) => (
-        <span key={pos} aria-hidden className={`absolute h-4 w-4 border-cyan-300/60 ${pos}`} />
-      ))}
-    </div>
+      <h3
+        className="font-display font-semibold text-[1.6rem] leading-tight mt-3 text-white"
+        style={{ textShadow: '0 0 20px rgba(110,215,255,0.5)' }}
+      >
+        {name}
+      </h3>
+
+      <p className="text-[14.5px] leading-relaxed text-cyan-50/75 mt-3">{description}</p>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-[3px] border border-cyan-300/25 bg-cyan-300/[0.06] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100/85"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </HoloFrame>
   )
 }

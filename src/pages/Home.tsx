@@ -1,16 +1,15 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import GlobeScene from '@/components/GlobeScene';
 import JourneySection from '@/components/JourneyCard';
 import SkillCarousel from '@/components/SkillCarousel';
 import ProjectHologram from '@/components/ProjectHologram';
-import { Reveal, Rise, MaskLine } from '../components/motion/Reveal';
+import GlitchHeadline from '@/components/GlitchHeadline';
+import ContactLaunch from '@/components/ContactLaunch';
+import { socialLinks } from '@/components/SocialIcons';
+import { Reveal, Rise } from '../components/motion/Reveal';
 import { journey } from '../data/journey';
 
 export default function Home() {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
-
   return (
     <>
       {/* Fixed layer behind the page: idles in the hero, then walks the journey
@@ -50,15 +49,10 @@ export default function Home() {
             GlobeScene measures #hero-frame to park the globe at its right edge. */}
         <div className="relative z-10 w-full max-w-[1600px] mx-auto px-6 md:px-14">
           <div id="hero-frame">
-            <h1 className="font-poster uppercase leading-[0.84] tracking-[-0.015em] text-[clamp(3.2rem,13.5vw,12.5rem)] pointer-events-none select-none">
-              <MaskLine delay={0.15}>
-                <span>Software</span>{' '}
-                {/* <span className="font-editorial italic lowercase tracking-[-0.01em] text-[0.82em] pr-[0.06em]">
-                  full&#8209;stack
-                </span> */}
-              </MaskLine>
-              <MaskLine delay={0.28}>Developer</MaskLine>
-            </h1>
+            <GlitchHeadline
+              lines={['Software', 'Developer']}
+              className="font-poster uppercase leading-[0.84] tracking-[-0.015em] text-[clamp(3.2rem,13.5vw,12.5rem)] pointer-events-none select-none"
+            />
           </div>
         </div>
 
@@ -123,34 +117,9 @@ export default function Home() {
       {/* The top half is left clear: the globe finishes its climb here, hanging
           underside-down over the heading. */}
       <section id="contact" className="relative z-10 pt-[46svh] pb-16 px-6 md:px-20 max-w-xl mx-auto text-center">
-        <Reveal>
-          <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Contact</div>
-          <h2 className="font-display font-semibold text-3xl md:text-5xl leading-tight">Let's build something together.</h2>
-          <p className="text-[15px] text-muted mt-4">Have a project, a role, or just want to talk full-stack and latte art? Drop a line.</p>
-        </Reveal>
-
-        {submitted ? (
-          <div className="mt-9 p-7 bg-card border border-accent rounded-2xl text-sm">Thanks — I'll get back to you soon. ✦</div>
-        ) : (
-          <form
-            className="mt-9 flex flex-col gap-3 text-left"
-            onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
-          >
-            <input required placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="bg-card border border-white/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent" />
-            <input required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="bg-card border border-white/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent" />
-            <textarea required placeholder="Message" rows={4} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
-              className="bg-card border border-white/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent resize-y" />
-            <button type="submit" className="hoverable bg-accent text-ink font-bold text-sm rounded-lg py-3.5 mt-1.5">Send message</button>
-          </form>
-        )}
-
-        <div className="flex justify-center gap-3.5 mt-8">
-          {['@', 'GH', 'in'].map((l) => (
-            <a key={l} href="#" className="hoverable w-[42px] h-[42px] rounded-full border border-white/15 flex items-center justify-center text-[#c2c2cc] text-[13px] font-mono">{l}</a>
-          ))}
-        </div>
+        {/* Heading, blurb and form all live in ContactLaunch: they leave
+            together once a message has been sent. */}
+        <ContactLaunch />
 
         <Link to="/latte-art" className="hoverable mt-14 flex items-center justify-between bg-card border border-line rounded-2xl px-6 py-5 hover:border-latte transition-colors">
           <span className="text-sm font-semibold">Also — I make latte art ☕</span>
@@ -158,9 +127,28 @@ export default function Home() {
         </Link>
       </section>
 
-      <footer className="relative z-10 px-6 md:px-20 py-10 flex justify-between items-center text-dim text-xs border-t border-line max-w-6xl mx-auto">
-        <span>© 2026 Dylan Khor</span>
-        <span className="font-mono">BUILT WITH TOO MUCH COFFEE</span>
+      {/* Three columns rather than justify-between, so the icons sit dead centre
+          regardless of how wide the text either side runs. */}
+      <footer className="relative z-10 px-6 md:px-20 py-10 border-t border-line max-w-6xl mx-auto grid gap-7 text-center text-dim text-xs md:grid-cols-3 md:items-center">
+        <span className="md:text-left">© 2026 Dylan Khor</span>
+
+        <div className="flex justify-center gap-3">
+          {socialLinks.map(({ name, href, Icon }) => (
+            <a
+              key={name}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={name}
+              title={name}
+              className="hoverable group w-[38px] h-[38px] rounded-full border border-white/15 flex items-center justify-center text-[#c2c2cc] transition-all duration-300 hover:border-accent hover:text-accent hover:-translate-y-1 hover:shadow-[0_0_22px_-6px_rgba(77,217,208,0.7)]"
+            >
+              <Icon className="w-[16px] h-[16px] transition-transform duration-300 group-hover:scale-110" />
+            </a>
+          ))}
+        </div>
+
+        <span className="font-mono md:text-right">BUILT WITH TOO MUCH COFFEE</span>
       </footer>
     </>
   );

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { Home, User, Briefcase, Wrench, FolderOpen, Mail, Coffee } from 'lucide-react';
+import { Home, Wrench, FolderOpen, Mail, Coffee, FileText } from 'lucide-react';
 import CircularNavigation, { type NavItem } from './ui/circular-navigation-bar';
+import resumeUrl from '../assets/Dylan_Resume.pdf';
 
 /** Scroll distance past which the sticky-less navbar is considered gone. */
 const THRESHOLD = 90;
@@ -41,6 +42,9 @@ export default function FloatingMenu() {
     { name: 'Skills', icon: Wrench, onSelect: () => goToSection('skills') },
     { name: 'Work', icon: FolderOpen, onSelect: () => goToSection('projects') },
     { name: 'Contact', icon: Mail, onSelect: () => goToSection('contact') },
+    // Not `href`: that renders a router Link, which would try to route to the
+    // asset path instead of opening the PDF.
+    { name: 'Resume', icon: FileText, onSelect: () => window.open(resumeUrl, '_blank', 'noopener') },
     { name: 'Latte Art', icon: Coffee, href: '/latte-art' },
   ];
 
