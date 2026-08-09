@@ -68,7 +68,7 @@ export const journey: JourneyStop[] = [
     place: { x: 0.28, y: 0.5, r: 0.4 },
     placeSmall: SMALL,
     from: "right",
-    year: "2005",
+    year: "2005 - 2021",
     text: "Moved to Malaysia at the age of 2, and lived there for 16 years.",
   },
   {
@@ -77,7 +77,7 @@ export const journey: JourneyStop[] = [
     place: CENTRE,
     placeSmall: SMALL,
     from: "left",
-    year: "2021",
+    year: "2021 - 2025",
     text: "Went to Iowa State University. Got my BSc in Bioinformatics and MSc in Computer Science.",
   },
   {
@@ -88,7 +88,7 @@ export const journey: JourneyStop[] = [
     place: CENTRE,
     placeSmall: SMALL,
     from: "right",
-    year: "2024",
+    year: "2025",
     text: "Landed my first tech job as a Software Engineer Apprentice at Source Allies.",
   },
   {
@@ -98,7 +98,7 @@ export const journey: JourneyStop[] = [
     place: CENTRE,
     placeSmall: SMALL,
     from: "left",
-    year: "2026",
+    year: "2026 - PRESENT",
     text:
       "After receiving my MSc, I started working as a Software Developer as part of Musco Lighting's Emerging Tech group.",
   },

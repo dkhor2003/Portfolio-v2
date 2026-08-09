@@ -1,4 +1,4 @@
-export type SkillCategory = 'Language' | 'Library / Framework' | 'Cloud' | 'Developer tool'
+export type SkillCategory = 'Language' | 'Library / Framework' | 'Cloud' | 'Developer tool' | 'Database'
 
 export interface Skill {
   slug: string
@@ -20,6 +20,7 @@ export const categoryColor: Record<SkillCategory, string> = {
   'Library / Framework': '#a78bfa',
   Cloud: '#d99a4d',
   'Developer tool': '#fb7185',
+  Database: '#fde047'
 }
 
 const files = import.meta.glob('../assets/logos/*.{svg,png}', {
@@ -40,27 +41,29 @@ for (const [path, url] of Object.entries(files)) {
  * neighbours here end up in opposite rows.
  */
 const defined: Array<[slug: string, name: string, category: SkillCategory, level: number]> = [
-  ['python', 'Python', 'Language', 92],
-  ['react', 'React', 'Library / Framework', 87],
-  ['aws', 'AWS', 'Cloud', 72],
-  ['docker', 'Docker', 'Developer tool', 75],
-  ['typescript', 'TypeScript', 'Language', 88],
-  ['pytorch', 'PyTorch', 'Library / Framework', 76],
-  ['azure', 'Azure', 'Cloud', 66],
-  ['git', 'Git', 'Developer tool', 89],
-  ['javascript', 'JavaScript', 'Language', 86],
-  ['three', 'Three.js', 'Library / Framework', 62],
-  ['terraform', 'Terraform', 'Developer tool', 64],
-  ['java', 'Java', 'Language', 78],
-  ['tailwind-css', 'Tailwind CSS', 'Library / Framework', 84],
+  ['python', 'Python', 'Language', 90],
+  ['react', 'React', 'Library / Framework', 85],
+  ['aws', 'AWS', 'Cloud', 85],
+  ['docker', 'Docker', 'Developer tool', 90],
+  ['typescript', 'TypeScript', 'Language', 70],
+  ['pytorch', 'PyTorch', 'Library / Framework', 70],
+  ['azure', 'Azure', 'Cloud', 80],
+  ['git', 'Git', 'Developer tool', 90],
+  ['javascript', 'JavaScript', 'Language', 90],
+  ['three', 'Three.js', 'Library / Framework', 70],
+  ['terraform', 'Terraform', 'Developer tool', 65],
+  ['java', 'Java', 'Language', 80],
+  ['tailwind-css', 'Tailwind CSS', 'Library / Framework', 80],
   ['vite', 'Vite', 'Developer tool', 80],
-  ['c++', 'C++', 'Language', 74],
-  ['opencv', 'OpenCV', 'Library / Framework', 68],
-  ['bash', 'Bash', 'Language', 70],
-  ['vulkan', 'Vulkan', 'Library / Framework', 55],
-  ['sql', 'SQL', 'Language', 82],
+  ['c++', 'C++', 'Language', 80],
+  ['opencv', 'OpenCV', 'Library / Framework', 85],
+  ['bash', 'Bash', 'Language', 85],
+  ['vulkan', 'Vulkan', 'Library / Framework', 50],
+  ['sql', 'SQL', 'Language', 90],
   ['html', 'HTML', 'Language', 90],
-  ['css', 'CSS', 'Language', 85],
+  ['css', 'CSS', 'Language', 90],
+  ['postgresql', 'PostgreSQL', 'Database', 85],
+  ['redis', 'Redis', 'Database', 90],
 ]
 
 const listed = new Set(defined.map(([slug]) => slug))
