@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { useReducedMotion } from 'motion/react'
 import { MaskLine } from './motion/Reveal'
 
@@ -21,9 +21,12 @@ const BURST_RANGE = 320
 export default function GlitchHeadline({
   lines,
   className = '',
+  style,
 }: {
   lines: string[]
   className?: string
+  /** Applied to the headline and to both glitch layers, which must match it. */
+  style?: CSSProperties
 }) {
   const [burst, setBurst] = useState(false)
   const reduce = useReducedMotion()
@@ -52,7 +55,7 @@ export default function GlitchHeadline({
 
   return (
     <div className="relative">
-      <h1 className={`${className} ${burst ? 'animate-glitchSkew' : ''}`}>
+      <h1 className={`${className} ${burst ? 'animate-glitchSkew' : ''}`} style={style}>
         {lines.map((line, i) => (
           <MaskLine key={line} delay={0.15 + i * 0.13}>
             {line}
@@ -65,6 +68,7 @@ export default function GlitchHeadline({
           <div
             aria-hidden
             className={`${className} absolute inset-0 animate-glitchA text-[#ff2d6f] mix-blend-screen`}
+            style={style}
           >
             {lines.map((line) => (
               <span key={line} className="block">
@@ -75,6 +79,7 @@ export default function GlitchHeadline({
           <div
             aria-hidden
             className={`${className} absolute inset-0 animate-glitchB text-accent mix-blend-screen`}
+            style={style}
           >
             {lines.map((line) => (
               <span key={line} className="block">

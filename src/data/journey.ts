@@ -45,7 +45,11 @@ export const heroPin: Pin = {
 }
 
 const CENTRE: Placement = { x: 0.5, y: 0.5, r: 0.36 }
-const SMALL: Placement = { x: 0.5, y: 0.33, r: 0.3 }
+/**
+ * Stacked layout: the globe sits along the bottom edge and the card drops in
+ * from above, so neither has to share the width with the other.
+ */
+const SMALL: Placement = { x: 0.5, y: 0.82, r: 0.34 }
 
 /**
  * The scroll-driven story between the hero and the about section. Each stop is

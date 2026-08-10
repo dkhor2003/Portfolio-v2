@@ -5,6 +5,7 @@ import * as d3 from "d3"
 import { loadGlobeData, type GlobeData } from "@/lib/globe-data"
 import { drawWireframe } from "@/lib/globe-render"
 import { heroPin, journey, type Pin } from "@/data/journey"
+import { STACK_BELOW } from "@/hooks/use-media-query"
 
 export interface GlobeSceneProps {
   markerColor?: string
@@ -98,7 +99,8 @@ export default function GlobeScene({
     const measure = () => {
       vw = window.innerWidth
       vh = window.innerHeight
-      const wide = vw >= 768
+      // Below this the journey stops stack instead of sitting side by side.
+      const wide = vw >= STACK_BELOW
       const short = Math.min(vw, vh)
 
       // Full-viewport canvas, repainted every frame — worth capping the pixel
@@ -125,11 +127,22 @@ export default function GlobeScene({
       const hero = top(heroId) ?? { top: 0, height: vh }
       const exitBefore = top(exitBeforeId)
 
-      // Idle placement mirrors the original hero layout: a 620px box, inset 4vw
-      // from the right edge on desktop, centred on narrow screens.
-      const box = Math.max(200, Math.min(620, vw - 40, vh - 100))
-      heroR = box / 2.5
-      heroCy = hero.top + hero.height / 2
+      // The hero reserves an empty box for the globe and moves it around as the
+      // layout changes — beside the headline when there is room, beneath it once
+      // the type would collide. Reading that box means the globe follows the
+      // layout instead of re-deriving it from breakpoints that could disagree.
+      const slot = document.getElementById("hero-globe-slot")?.getBoundingClientRect()
+      let heroCx: number
+      if (slot && slot.width > 1 && slot.height > 1) {
+        heroR = Math.min(slot.width, slot.height) / 2.5
+        heroCx = slot.left + slot.width / 2
+        heroCy = slot.top + scrollY + slot.height / 2
+      } else {
+        const box = Math.max(200, Math.min(620, vw - 40, vh - 100))
+        heroR = box / 2.5
+        heroCx = vw / 2
+        heroCy = hero.top + hero.height / 2
+      }
 
       const stops = journey.map((stop) => {
         const place = (!wide && stop.placeSmall) || stop.place
@@ -150,15 +163,10 @@ export default function GlobeScene({
       })
 
       const exitR = short * 0.18
-      // Park against the right edge of the hero's type frame rather than the
-      // viewport, so on a wide screen the globe comes in to meet the headline
-      // instead of the two drifting to opposite edges.
-      const frame = document.getElementById("hero-frame")?.getBoundingClientRect()
-      const heroRight = frame ? frame.right : vw - vw * 0.04
 
       frames = [
         {
-          cx: wide ? heroRight - box / 2 : vw / 2,
+          cx: heroCx,
           cy: 0, // filled in live
           r: heroR,
           rot: null,

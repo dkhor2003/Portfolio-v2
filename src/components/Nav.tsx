@@ -17,6 +17,7 @@ function RollLink({
   // class name assembled at runtime never makes it into the stylesheet.
   accentText = 'text-accent',
   accentBg = 'bg-accent',
+  className = '',
 }: {
   children: ReactNode;
   onClick?: () => void;
@@ -26,6 +27,7 @@ function RollLink({
   to?: string;
   accentText?: string;
   accentBg?: string;
+  className?: string;
 }) {
   const inner = (
     <>
@@ -45,24 +47,26 @@ function RollLink({
     </>
   );
 
-  const className = 'hoverable group relative inline-block';
+  const shell = `hoverable group relative inline-block ${className}`;
 
+  // onClick rides along on every variant, so the mobile menu can close itself
+  // when a link is followed as well as when a section button is pressed.
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={shell} onClick={onClick}>
         {inner}
       </a>
     );
   }
   if (to) {
     return (
-      <Link to={to} className={className}>
+      <Link to={to} className={shell} onClick={onClick}>
         {inner}
       </Link>
     );
   }
   return (
-    <button onClick={onClick} className={className}>
+    <button onClick={onClick} className={shell}>
       {inner}
     </button>
   );
@@ -110,20 +114,28 @@ export default function Nav() {
         <span className="w-5 h-0.5 bg-white" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 md:hidden bg-[#0e0e15] border-b border-line flex flex-col px-6 py-5 gap-4 text-[15px] font-medium">
+        // Same roll-and-underline as the desktop bar: at narrow widths this menu
+        // is the only nav there is, and plain text gave no sign it was tappable.
+        <div className="absolute top-full left-0 right-0 md:hidden bg-[#0e0e15] border-b border-line flex flex-col items-start px-6 py-5 gap-5 text-[15px] font-medium text-[#c2c2cc]">
           {sectionIds
             .filter((id) => id !== 'hero')
             .map((id) => (
-              <button key={id} onClick={() => goTo(id)} className="text-left">
+              <RollLink key={id} onClick={() => goTo(id)} className="self-start">
                 {labels[id]}
-              </button>
+              </RollLink>
             ))}
-          <a href={resumeUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+          <RollLink href={resumeUrl} className="self-start" onClick={() => setOpen(false)}>
             Resume ↗
-          </a>
-          <Link to="/latte-art" className="text-latte" onClick={() => setOpen(false)}>
+          </RollLink>
+          <RollLink
+            to="/latte-art"
+            accentText="text-latte"
+            accentBg="bg-latte"
+            className="self-start"
+            onClick={() => setOpen(false)}
+          >
             Latte Art ↗
-          </Link>
+          </RollLink>
         </div>
       )}
     </nav>

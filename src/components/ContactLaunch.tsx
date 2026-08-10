@@ -206,10 +206,10 @@ export default function ContactLaunch() {
         >
           <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Contact</div>
           <h2 className="font-display font-semibold text-3xl md:text-5xl leading-tight">
-            Let's build something together.
+            Let's connect.
           </h2>
           <p className="text-[15px] text-muted mt-4">
-            Have a project, a role, or just want to talk full-stack and latte art? Drop a line.
+            Open to talk about any job or project opportunities, or even about latte arts. Drop a line below.
           </p>
 
           <form

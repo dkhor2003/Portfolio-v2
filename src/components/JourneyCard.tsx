@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'motion/react';
 import ImageDropSlot from './ImageDropSlot';
+import { STACKED_QUERY, useMediaQuery } from '@/hooks/use-media-query';
 import type { JourneyStop } from '../data/journey';
 
 const SPRING = { type: 'spring', stiffness: 68, damping: 13, mass: 0.9 } as const;
@@ -24,7 +25,13 @@ function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
       />
 
       <motion.div variants={item}>
-        <ImageDropSlot id={`journey-${stop.id}`} placeholder="Drop a photo" className="aspect-[4/3] w-full" />
+        {/* Shorter frame when stacked: the card has to clear the globe's pin
+            label below it, and a 4:3 photo makes it too tall to. */}
+        <ImageDropSlot
+          id={`journey-${stop.id}`}
+          placeholder="Drop a photo"
+          className="aspect-[16/10] lg:aspect-[4/3] w-full"
+        />
       </motion.div>
 
       <motion.div variants={item} className="mt-4 flex items-baseline justify-between gap-3">
@@ -55,6 +62,7 @@ function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
  */
 export function JourneyCard({ stop, index }: { stop: JourneyStop; index: number }) {
   const reduce = useReducedMotion();
+  const stackedLayout = useMediaQuery(STACKED_QUERY);
   const dir = stop.from === 'left' ? -1 : 1;
 
   if (reduce) {
@@ -65,6 +73,12 @@ export function JourneyCard({ stop, index }: { stop: JourneyStop; index: number 
     );
   }
 
+  // Stacked, the globe owns the bottom of the screen, so there is no side for a
+  // card to come from — it drops from above and lifts back out the same way.
+  const out = stackedLayout
+    ? { x: 0, y: -190, rotate: dir * 5, scale: 0.9, opacity: 0 }
+    : { x: dir * 190, y: 44, rotate: dir * 9, scale: 0.9, opacity: 0 };
+
   return (
     <motion.article
       className="w-[min(86vw,25rem)]"
@@ -72,7 +86,7 @@ export function JourneyCard({ stop, index }: { stop: JourneyStop; index: number 
       whileInView="in"
       viewport={{ once: false, amount: 0.45 }}
       variants={{
-        out: { x: dir * 190, y: 44, rotate: dir * 9, scale: 0.9, opacity: 0 },
+        out,
         in: {
           x: 0,
           y: 0,
@@ -95,15 +109,22 @@ export function JourneyCard({ stop, index }: { stop: JourneyStop; index: number 
   );
 }
 
-/** Full-height stage for one stop: the globe parks, the card flies in. */
+/**
+ * Full-height stage for one stop: the globe parks, the card flies in.
+ *
+ * Wide, the card takes the side the globe is not on. Stacked, the globe drops
+ * to the bottom of the screen and the card sits above it, centred.
+ */
 export default function JourneySection({ stop, index }: { stop: JourneyStop; index: number }) {
   return (
     <section
       id={stop.id}
-      className="relative z-10 min-h-svh flex items-end md:items-center px-6 md:px-12 pb-24 md:pb-0"
+      className="relative z-10 min-h-svh flex items-start lg:items-center justify-center lg:justify-normal px-6 lg:px-12 pt-24 lg:pt-0"
     >
-      <div className="w-full max-w-[86rem] mx-auto flex">
-        <div className={stop.from === 'left' ? 'mr-auto' : 'ml-auto'}>
+      <div className="w-full max-w-[86rem] mx-auto flex justify-center lg:justify-normal">
+        {/* Whole class names, not assembled ones — Tailwind scans source text
+            and never sees a class built at runtime. */}
+        <div className={stop.from === 'left' ? 'lg:mr-auto' : 'lg:ml-auto'}>
           <JourneyCard stop={stop} index={index} />
         </div>
       </div>
