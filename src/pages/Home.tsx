@@ -129,7 +129,7 @@ export default function Home() {
           y={0}
           className="absolute top-8 right-6 md:right-14 z-20 hidden md:block max-w-[260px] font-mono text-[11px] uppercase tracking-[0.1em] leading-[1.6] text-muted pointer-events-none"
         >
-          <span className="text-white font-semibold">What I can help you with</span>
+          <span className="text-fg font-semibold">What I can help you with</span>
           <br />
           Full-stack web apps. APIs and data pipelines. Interactive front-ends. Latte art on request.
         </Rise>
@@ -180,13 +180,13 @@ export default function Home() {
         <div className="absolute bottom-8 inset-x-0 px-6 md:px-14 z-20 flex items-end justify-between gap-6">
           <Rise delay={0.8} y={0} className="flex items-center gap-4">
             <button
-              className="hoverable font-mono text-[11px] uppercase tracking-[0.16em] border border-white/25 rounded-full px-5 py-2.5 hover:border-accent hover:text-accent transition-colors"
+              className="hoverable font-mono text-[11px] uppercase tracking-[0.16em] border border-fg/25 rounded-full px-5 py-2.5 hover:border-accent hover:text-accent transition-colors"
               onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
             >
               See my work
             </button>
             <button
-              className="hoverable font-mono text-[11px] uppercase tracking-[0.16em] text-muted hover:text-white transition-colors"
+              className="hoverable font-mono text-[11px] uppercase tracking-[0.16em] text-muted hover:text-fg transition-colors"
               onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Get in touch ↗
@@ -261,7 +261,7 @@ export default function Home() {
               rel="noopener noreferrer"
               aria-label={name}
               title={name}
-              className="hoverable group w-[38px] h-[38px] rounded-full border border-white/15 flex items-center justify-center text-[#c2c2cc] transition-all duration-300 hover:border-accent hover:text-accent hover:-translate-y-1 hover:shadow-[0_0_22px_-6px_rgba(77,217,208,0.7)]"
+              className="hoverable group w-[38px] h-[38px] rounded-full border border-fg/15 flex items-center justify-center text-muted transition-all duration-300 hover:border-accent hover:text-accent hover:-translate-y-1 hover:shadow-[0_0_22px_-6px_rgba(77,217,208,0.7)]"
             >
               <Icon className="w-[16px] h-[16px] transition-transform duration-300 group-hover:scale-110" />
             </a>

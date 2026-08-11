@@ -1,5 +1,6 @@
 import * as d3 from "d3"
 import type { GlobeData } from "./globe-data"
+import { palette, rgba } from "./palette"
 
 const DEG = Math.PI / 180
 /** Built once — the graticule geometry never changes. */
@@ -72,7 +73,7 @@ function drawDots(ctx: CanvasRenderingContext2D, o: WireframeOptions) {
       ctx.rect(px - dotR, py - dotR, dotSize, dotSize)
     }
     ctx.globalAlpha = alpha
-    ctx.fillStyle = "#999999"
+    ctx.fillStyle = rgba(palette().dot)
     ctx.fill()
   }
   ctx.globalAlpha = 1
@@ -87,11 +88,13 @@ function drawDots(ctx: CanvasRenderingContext2D, o: WireframeOptions) {
  */
 export function drawWireframe(ctx: CanvasRenderingContext2D, o: WireframeOptions) {
   // Sphere edge. Unfilled, so the page shows through the wireframe.
+  const ink = palette()
+  const stroke = rgba(ink.line)
   ctx.beginPath()
   ctx.arc(o.cx, o.cy, o.r, 0, 2 * Math.PI)
-  ctx.strokeStyle = "#ffffff"
+  ctx.strokeStyle = stroke
   ctx.lineWidth = o.s
-  ctx.globalAlpha = 0.18
+  ctx.globalAlpha = 0.18 * ink.lineAlpha
   ctx.stroke()
   ctx.globalAlpha = 1
 
@@ -99,16 +102,16 @@ export function drawWireframe(ctx: CanvasRenderingContext2D, o: WireframeOptions
 
   ctx.beginPath()
   o.path(graticule)
-  ctx.strokeStyle = "#ffffff"
+  ctx.strokeStyle = stroke
   ctx.lineWidth = o.s
-  ctx.globalAlpha = 0.14
+  ctx.globalAlpha = 0.14 * ink.lineAlpha
   ctx.stroke()
 
   ctx.beginPath()
   o.data.land.features.forEach((feature: any) => o.path(feature))
-  ctx.strokeStyle = "#ffffff"
+  ctx.strokeStyle = stroke
   ctx.lineWidth = o.s
-  ctx.globalAlpha = o.landAlpha
+  ctx.globalAlpha = o.landAlpha * ink.lineAlpha
   ctx.stroke()
   ctx.globalAlpha = 1
 

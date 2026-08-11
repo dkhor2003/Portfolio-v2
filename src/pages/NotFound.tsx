@@ -15,7 +15,7 @@ export default function NotFound() {
       {/* Darkens the middle of the wireframe just enough to read type over. */}
       <div
         aria-hidden
-        className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_58%_46%_at_50%_50%,rgba(10,10,15,0.9)_0%,rgba(10,10,15,0.55)_55%,rgba(10,10,15,0)_100%)]"
+        className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_58%_46%_at_50%_50%,rgb(var(--ink)/0.92)_0%,rgb(var(--ink)/0.6)_55%,rgb(var(--ink)/0)_100%)]"
       />
 
       <div className="relative z-10 pointer-events-none text-center max-w-xl">
@@ -38,14 +38,14 @@ export default function NotFound() {
         <Rise delay={0.34}>
           <p className="text-[15px] text-muted mt-4 leading-relaxed">
             Nothing charted at{' '}
-            <span className="font-mono text-[13px] text-[#c2c2cc] break-all">{pathname}</span>.
+            <span className="font-mono text-[13px] text-muted break-all">{pathname}</span>.
           </p>
         </Rise>
 
         <Rise delay={0.44}>
           <Link
             to="/"
-            className="hoverable pointer-events-auto inline-block mt-8 font-mono text-[11px] uppercase tracking-[0.16em] border border-white/25 rounded-full px-5 py-2.5 hover:border-accent hover:text-accent transition-colors"
+            className="hoverable pointer-events-auto inline-block mt-8 font-mono text-[11px] uppercase tracking-[0.16em] border border-fg/25 rounded-full px-5 py-2.5 hover:border-accent hover:text-accent transition-colors"
           >
             ← back to known territory
           </Link>

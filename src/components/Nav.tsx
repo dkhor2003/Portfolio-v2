@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { sectionIds } from '../data/content';
 import resumeUrl from '../assets/Dylan_Resume.pdf';
+import ThemeToggle from './ThemeToggle';
 
 /**
  * Nav item with a hover roll: the label lifts away while a coloured copy rises
@@ -95,7 +96,7 @@ export default function Nav() {
       <Link to="/" className="font-display font-bold text-base tracking-tight">
         dylan<span className="text-accent">.dev</span>
       </Link>
-      <div className="hidden md:flex gap-7 text-[13px] font-medium text-[#c2c2cc]">
+      <div className="hidden md:flex gap-7 text-[13px] font-medium text-muted">
         {sectionIds
           .filter((id) => id !== 'hero')
           .map((id) => (
@@ -107,16 +108,20 @@ export default function Nav() {
         <RollLink to="/latte-art" accentText="text-latte" accentBg="bg-latte">
           Latte Art ↗
         </RollLink>
+        <ThemeToggle className="-my-1.5" />
       </div>
-      <button className="md:hidden flex flex-col gap-1.5 p-1.5" onClick={() => setOpen((v) => !v)} aria-label="Menu">
-        <span className="w-5 h-0.5 bg-white" />
-        <span className="w-5 h-0.5 bg-white" />
-        <span className="w-5 h-0.5 bg-white" />
-      </button>
+      <div className="md:hidden flex items-center gap-3">
+        <ThemeToggle />
+        <button className="flex flex-col gap-1.5 p-1.5" onClick={() => setOpen((v) => !v)} aria-label="Menu">
+          <span className="w-5 h-0.5 bg-fg" />
+          <span className="w-5 h-0.5 bg-fg" />
+          <span className="w-5 h-0.5 bg-fg" />
+        </button>
+      </div>
       {open && (
         // Same roll-and-underline as the desktop bar: at narrow widths this menu
         // is the only nav there is, and plain text gave no sign it was tappable.
-        <div className="absolute top-full left-0 right-0 md:hidden bg-[#0e0e15] border-b border-line flex flex-col items-start px-6 py-5 gap-5 text-[15px] font-medium text-[#c2c2cc]">
+        <div className="absolute top-full left-0 right-0 md:hidden bg-card border-b border-line flex flex-col items-start px-6 py-5 gap-5 text-[15px] font-medium text-muted">
           {sectionIds
             .filter((id) => id !== 'hero')
             .map((id) => (

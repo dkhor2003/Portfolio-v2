@@ -4,6 +4,7 @@ import { useReducedMotion } from 'motion/react'
 import { loadGlobeData, type GlobeData } from '@/lib/globe-data'
 import { drawWireframe } from '@/lib/globe-render'
 import { contactGlobe } from '@/lib/globe-stage'
+import { palette, rgba } from '@/lib/palette'
 import HoloFrame from './HoloFrame'
 import { projects } from '../data/content'
 
@@ -152,6 +153,33 @@ export default function ProjectHologram() {
     /* ----- light -------------------------------------------------- */
 
     /**
+     * The projector's colours. Additive blending only brightens a dark page —
+     * over paper it saturates to nothing — so the light theme swaps to normal
+     * compositing with a saturated accent, which reads as a tinted shaft rather
+     * than a glow, and leans on stronger alphas to stay visible.
+     */
+    const beam = () => {
+      const p = palette()
+      return p.dark
+        ? {
+            op: 'lighter' as GlobalCompositeOperation,
+            core: [255, 255, 255] as [number, number, number],
+            hot: [175, 240, 255] as [number, number, number],
+            mid: [120, 210, 255] as [number, number, number],
+            far: [70, 150, 235] as [number, number, number],
+            gain: 1,
+          }
+        : {
+            op: 'source-over' as GlobalCompositeOperation,
+            core: p.accent,
+            hot: p.accent,
+            mid: p.accent,
+            far: p.accent,
+            gain: 1.5,
+          }
+    }
+
+    /**
      * Draws a soft elliptical falloff. Canvas gradients are radial only, so the
      * context is scaled to stretch the circle into the column shape — that
      * keeps the edges genuinely soft instead of clipped to a path.
@@ -179,39 +207,40 @@ export default function ProjectHologram() {
     const drawLight = (apexY: number, intensity: number, time: number) => {
       if (intensity <= 0.004) return
       const breathe = 0.93 + 0.07 * Math.sin(time * 0.0011)
-      const i = intensity * breathe
+      const b = beam()
+      const i = intensity * breathe * b.gain
 
       ctx.save()
-      ctx.globalCompositeOperation = 'lighter'
+      ctx.globalCompositeOperation = b.op
 
       // Wide, very faint haze — this is what dissolves into the page.
       glowEllipse(cx, apexY - beamLen * 0.3, Math.min(vw * 0.42, 560), beamLen * 1.5, [
-        [0, `rgba(70, 150, 235, ${0.09 * i})`],
-        [0.5, `rgba(55, 120, 220, ${0.035 * i})`],
-        [1, 'rgba(40, 90, 200, 0)'],
+        [0, rgba(b.far, 0.09 * i)],
+        [0.5, rgba(b.far, 0.035 * i)],
+        [1, rgba(b.far, 0)],
       ])
 
       // The column proper, tighter and cooler.
       glowEllipse(cx, apexY - beamLen * 0.42, Math.min(vw * 0.2, 260), beamLen * 1.15, [
-        [0, `rgba(120, 210, 255, ${0.17 * i})`],
-        [0.45, `rgba(85, 175, 250, ${0.07 * i})`],
-        [1, 'rgba(60, 140, 240, 0)'],
+        [0, rgba(b.mid, 0.17 * i)],
+        [0.45, rgba(b.mid, 0.07 * i)],
+        [1, rgba(b.mid, 0)],
       ])
 
       // Bright throat just above the emitter.
       glowEllipse(cx, apexY - beamLen * 0.14, Math.min(vw * 0.09, 120), beamLen * 0.42, [
-        [0, `rgba(200, 245, 255, ${0.3 * i})`],
-        [0.5, `rgba(130, 215, 255, ${0.11 * i})`],
-        [1, 'rgba(90, 180, 255, 0)'],
+        [0, rgba(b.hot, 0.3 * i)],
+        [0.5, rgba(b.hot, 0.11 * i)],
+        [1, rgba(b.hot, 0)],
       ])
 
       // The source itself.
       const core = 46 * breathe
       glowEllipse(cx, apexY, core * 2.6, core * 2.1, [
-        [0, `rgba(255, 255, 255, ${0.5 * (0.35 + i * 0.65)})`],
-        [0.18, `rgba(175, 240, 255, ${0.34 * (0.3 + i * 0.7)})`],
-        [0.55, `rgba(90, 185, 255, ${0.1 * i})`],
-        [1, 'rgba(60, 140, 240, 0)'],
+        [0, rgba(b.core, 0.5 * (0.35 + i * 0.65))],
+        [0.18, rgba(b.hot, 0.34 * (0.3 + i * 0.7))],
+        [0.55, rgba(b.mid, 0.1 * i)],
+        [1, rgba(b.far, 0)],
       ])
 
       ctx.restore()
@@ -220,14 +249,15 @@ export default function ProjectHologram() {
     /** Light landing on the globe around the emitter, clipped to the sphere. */
     const drawSpill = (cy: number, apexY: number, intensity: number) => {
       ctx.save()
-      ctx.globalCompositeOperation = 'lighter'
+      const b = beam()
+      ctx.globalCompositeOperation = b.op
       ctx.beginPath()
       ctx.arc(cx, cy, r, 0, Math.PI * 2)
       ctx.clip()
       glowEllipse(cx, apexY, r * 0.62, r * 0.42, [
-        [0, `rgba(150, 225, 255, ${0.2 * (0.3 + intensity * 0.7)})`],
-        [0.45, `rgba(90, 180, 250, ${0.07 * (0.3 + intensity * 0.7)})`],
-        [1, 'rgba(60, 140, 235, 0)'],
+        [0, rgba(b.hot, 0.2 * b.gain * (0.3 + intensity * 0.7))],
+        [0.45, rgba(b.mid, 0.07 * b.gain * (0.3 + intensity * 0.7))],
+        [1, rgba(b.far, 0)],
       ])
       ctx.restore()
     }
@@ -235,7 +265,8 @@ export default function ProjectHologram() {
     const drawMotes = (apexY: number, intensity: number, dt: number) => {
       if (intensity <= 0.02) return
       ctx.save()
-      ctx.globalCompositeOperation = 'lighter'
+      const b = beam()
+      ctx.globalCompositeOperation = b.op
       for (const m of motes) {
         m.rise += m.speed * dt
         if (m.rise > 1) {
@@ -247,7 +278,7 @@ export default function ProjectHologram() {
         const y = apexY - m.rise * beamLen
         const fade = Math.sin(m.rise * Math.PI) * intensity
         if (fade <= 0.01) continue
-        ctx.fillStyle = `rgba(205, 240, 255, ${fade * 0.42})`
+        ctx.fillStyle = rgba(b.hot, fade * 0.42 * b.gain)
         ctx.beginPath()
         ctx.arc(x, y, m.size, 0, Math.PI * 2)
         ctx.fill()
@@ -259,13 +290,14 @@ export default function ProjectHologram() {
     const drawRings = (apexY: number, intensity: number, time: number) => {
       if (intensity <= 0.01) return
       ctx.save()
-      ctx.globalCompositeOperation = 'lighter'
+      const b = beam()
+      ctx.globalCompositeOperation = b.op
       ctx.translate(cx, apexY)
       for (let i = 0; i < 4; i++) {
         const rx = 58 + i * 52
         const alpha = (0.19 - i * 0.035) * intensity
         if (alpha <= 0) continue
-        ctx.strokeStyle = `rgba(110, 205, 255, ${alpha})`
+        ctx.strokeStyle = rgba(b.mid, alpha * b.gain)
         ctx.lineWidth = i === 1 ? 1.6 : 1
         ctx.setLineDash(i % 2 ? [3, 12] : [])
         ctx.lineDashOffset = (i % 2 ? -1 : 1) * time * 0.018
@@ -277,7 +309,7 @@ export default function ProjectHologram() {
 
       // One brighter arc sweeping around, like a scanning head.
       const sweep = (time * 0.0009) % (Math.PI * 2)
-      ctx.strokeStyle = `rgba(180, 240, 255, ${0.4 * intensity})`
+      ctx.strokeStyle = rgba(b.hot, 0.4 * intensity * b.gain)
       ctx.lineWidth = 1.8
       ctx.beginPath()
       ctx.ellipse(0, 0, 110, 110 * 0.24, 0, sweep, sweep + 0.85)
@@ -299,19 +331,20 @@ export default function ProjectHologram() {
         const size = 2.5 + heat * 4
 
         ctx.save()
-        ctx.globalCompositeOperation = 'lighter'
+        const b = beam()
+        ctx.globalCompositeOperation = b.op
         glowEllipse(nx, ny, 30 + heat * 46, 30 + heat * 46, [
-          [0, `rgba(130, 235, 255, ${0.26 + heat * 0.42})`],
-          [1, 'rgba(120, 220, 255, 0)'],
+          [0, rgba(b.mid, (0.26 + heat * 0.42) * b.gain)],
+          [1, rgba(b.mid, 0)],
         ])
-        ctx.fillStyle = `rgba(225, 253, 255, ${0.6 + heat * 0.4})`
+        ctx.fillStyle = rgba(b.core, 0.6 + heat * 0.4)
         ctx.beginPath()
         ctx.arc(nx, ny, size, 0, Math.PI * 2)
         ctx.fill()
 
         // A slow pulse keeps the rim alive between projects.
         const pulse = (time * 0.00035 + i / N) % 1
-        ctx.strokeStyle = `rgba(120, 225, 255, ${(1 - pulse) * (0.1 + heat * 0.22)})`
+        ctx.strokeStyle = rgba(b.mid, (1 - pulse) * (0.1 + heat * 0.22) * b.gain)
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.arc(nx, ny, size + pulse * 30, 0, Math.PI * 2)
@@ -484,7 +517,7 @@ export default function ProjectHologram() {
           {projects.map((p) => (
             <div key={p.name} className="bg-card border border-line rounded-2xl p-6">
               <div className="font-display font-semibold text-lg">{p.name}</div>
-              <p className="text-sm text-[#a4a4b0] mt-2 leading-relaxed">{p.description}</p>
+              <p className="text-sm text-muted mt-2 leading-relaxed">{p.description}</p>
               <div className="flex flex-wrap gap-2 mt-4">
                 {p.tags.map((t) => (
                   <span key={t} className="font-mono text-[11px] text-accent">{t}</span>
@@ -523,7 +556,7 @@ export default function ProjectHologram() {
                   <span
                     key={p.name}
                     className={`h-1.5 rounded-full transition-all duration-500 ${
-                      i === active ? 'w-6 bg-accent' : 'w-1.5 bg-white/25'
+                      i === active ? 'w-6 bg-accent' : 'w-1.5 bg-fg/25'
                     }`}
                   />
                 ))}
@@ -562,28 +595,28 @@ function HoloPanel({
 }) {
   return (
     <HoloFrame>
-      <div className="flex items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-200/70">
+      <div className="flex items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-accent dark:text-cyan-200/70">
         <span>Project {String(index + 1).padStart(2, '0')}</span>
         <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_#67e8f9]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent dark:bg-cyan-300 shadow-[0_0_8px_rgb(var(--accent))]" />
           Signal locked
         </span>
       </div>
 
       <h3
-        className="font-display font-semibold text-[1.6rem] leading-tight mt-3 text-white"
-        style={{ textShadow: '0 0 20px rgba(110,215,255,0.5)' }}
+        className="font-display font-semibold text-[1.6rem] leading-tight mt-3 text-fg"
+        style={{ textShadow: '0 0 20px rgb(var(--accent) / 0.45)' }}
       >
         {name}
       </h3>
 
-      <p className="text-[14.5px] leading-relaxed text-cyan-50/75 mt-3">{description}</p>
+      <p className="text-[14.5px] leading-relaxed text-muted dark:text-cyan-50/75 mt-3">{description}</p>
 
       <div className="mt-5 flex flex-wrap gap-2">
         {tags.map((tag) => (
           <span
             key={tag}
-            className="rounded-[3px] border border-cyan-300/25 bg-cyan-300/[0.06] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100/85"
+            className="rounded-[3px] border border-accent/35 bg-accent/[0.08] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-accent dark:border-cyan-300/25 dark:bg-cyan-300/[0.06] dark:text-cyan-100/85"
           >
             {tag}
           </span>

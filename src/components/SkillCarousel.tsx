@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { categoryColor, skills, type Skill } from '../data/skills'
+import { useTheme } from '@/lib/theme'
 
 /** Idle marquee speed, in pixels per second. Both rows share it. */
 const SPEED = 42
@@ -300,6 +301,9 @@ function Tile({
   onClose: () => void
 }) {
   const ref = useRef<HTMLButtonElement>(null)
+  // Subscribed rather than read from the cached palette: this is render-time, so
+  // it has to re-run when the theme flips.
+  const { theme } = useTheme()
   // One interaction path per device. A tap otherwise fires focus *and* a
   // compatibility mouseenter *and* a click, which open the bubble and then
   // immediately toggle it back shut.
@@ -316,9 +320,10 @@ function Tile({
 
   const color = categoryColor[skill.category]
   // Filters are composed by hand: the `invert` utility would be overwritten by
-  // an inline filter, and black-drawn logos need both.
+  // an inline filter, and black-drawn logos need both. The invert is dark-only —
+  // a black logo flipped to white would vanish against the light theme's paper.
   const filter = [
-    skill.invert ? 'invert(1)' : '',
+    skill.invert && theme === 'dark' ? 'invert(1)' : '',
     active ? `drop-shadow(0 0 16px ${color}80)` : 'grayscale(0.4)',
   ]
     .filter(Boolean)
@@ -386,7 +391,7 @@ function SkillBubble({ bubble }: { bubble: Bubble }) {
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.12 } }}
       transition={{ type: 'spring', stiffness: 420, damping: 26 }}
     >
-      <div className="relative rounded-2xl border border-line bg-card/95 p-4 shadow-[0_24px_60px_-18px_rgba(0,0,0,0.95)] backdrop-blur-md">
+      <div className="relative rounded-2xl border border-line bg-card/95 p-4 shadow-[0_24px_60px_-18px_rgb(var(--shadow)/0.5)] backdrop-blur-md">
         <div className="flex items-center justify-between gap-3">
           <span className="font-display text-[15px] font-semibold leading-none">{skill.name}</span>
           <span className="font-mono text-[15px] font-bold leading-none" style={{ color }}>
@@ -403,7 +408,7 @@ function SkillBubble({ bubble }: { bubble: Bubble }) {
 
         <div className="mt-3">
           <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-dim">Proficiency</div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-fg/10">
             <motion.div
               className="h-full rounded-full"
               style={{ background: `linear-gradient(90deg, ${color}66, ${color})` }}

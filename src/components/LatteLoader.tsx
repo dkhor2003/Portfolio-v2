@@ -13,16 +13,16 @@ export default function LatteLoader({ fading, label = 'LOADING UP…' }: { fadin
         {[14, 31, 48].map((left, i) => (
           <div
             key={left}
-            className="absolute -top-6 w-[9px] h-5 rounded-full bg-[#c2c2cc] animate-steamRise"
+            className="absolute -top-6 w-[9px] h-5 rounded-full bg-muted animate-steamRise"
             style={{ left, animationDelay: `${i * 0.4}s` }}
           />
         ))}
-        <div className="absolute bottom-0 left-0 right-0 h-[70px] border-[3px] border-[#e8ddc9] border-t-0 rounded-b-[20px] overflow-hidden bg-[#141018]">
+        <div className="absolute bottom-0 left-0 right-0 h-[70px] border-[3px] border-[rgb(var(--cup))] border-t-0 rounded-b-[20px] overflow-hidden bg-ink">
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-b from-latte to-[#a06a2e] animate-fillCup" />
         </div>
         {/* Handle. h-6.5 is not a real Tailwind step, which is why this used to
             render as a sliver. */}
-        <div className="absolute -right-4 top-4 w-5 h-[26px] border-[3px] border-[#e8ddc9] border-l-0 rounded-r-xl" />
+        <div className="absolute -right-4 top-4 w-5 h-[26px] border-[3px] border-[rgb(var(--cup))] border-l-0 rounded-r-xl" />
       </div>
       <div className="font-mono text-xs text-dim uppercase tracking-widest">{label}</div>
     </div>

@@ -6,8 +6,10 @@ import { loadGlobeData, type GlobeData } from "@/lib/globe-data"
 import { drawWireframe } from "@/lib/globe-render"
 import { heroPin, journey, type Pin } from "@/data/journey"
 import { STACK_BELOW } from "@/hooks/use-media-query"
+import { palette, rgba } from "@/lib/palette"
 
 export interface GlobeSceneProps {
+  /** Defaults to the theme's accent. */
   markerColor?: string
   /** Section the globe idles over. */
   heroId?: string
@@ -60,7 +62,7 @@ interface Frame {
  * stays crisp at every size, and no React state changes while scrolling.
  */
 export default function GlobeScene({
-  markerColor = "#4dd9d0",
+  markerColor,
   heroId = "hero",
   exitBeforeId = "skills",
 }: GlobeSceneProps) {
@@ -77,6 +79,10 @@ export default function GlobeScene({
     if (!ctx) return
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    /** Accent, unless a caller pinned one. Re-read whenever the theme changes. */
+    const accent = () => markerColor ?? rgba(palette().accent)
+    /** Backing for text drawn over the wireframe — the page colour, opaque. */
+    const backdrop = () => rgba(palette().ink, 0.95)
 
     let data: GlobeData | null = null
     let disposed = false
@@ -276,8 +282,8 @@ export default function GlobeScene({
 
       const [x, y] = projected
       ctx.save()
-      ctx.strokeStyle = markerColor
-      ctx.fillStyle = markerColor
+      ctx.strokeStyle = accent()
+      ctx.fillStyle = accent()
 
       const pulse = (elapsedMs % 2200) / 2200
       ctx.lineWidth = 1.5 * s
@@ -341,13 +347,13 @@ export default function GlobeScene({
       const padX = 7 * s
       const padY = 4 * s
       const h = 13 * s
-      ctx.fillStyle = "rgba(10, 10, 15, 0.72)"
+      ctx.fillStyle = rgba(palette().ink, 0.78)
       ctx.beginPath()
       if (ctx.roundRect) ctx.roundRect(startX - padX, y - padY, w + padX * 2, h + padY * 2, 4 * s)
       else ctx.rect(startX - padX, y - padY, w + padX * 2, h + padY * 2)
       ctx.fill()
 
-      ctx.fillStyle = "#dcdce6"
+      ctx.fillStyle = rgba(palette().fg, 0.88)
       ctx.fillText(shown, startX, y)
       if (caretOn) ctx.fillRect(startX + shownW + 2 * s, y + 1.5 * s, 4 * s, 11 * s)
       ctx.restore()
@@ -357,12 +363,12 @@ export default function GlobeScene({
       if (alpha <= 0.01) return
       ctx.save()
       ctx.globalAlpha = alpha
-      ctx.fillStyle = markerColor
+      ctx.fillStyle = accent()
       ctx.font = `700 ${18 * s}px ui-monospace, SFMono-Regular, Menlo, monospace`
       ctx.textAlign = "center"
       ctx.textBaseline = "bottom"
       ctx.letterSpacing = `${1.5 * s}px`
-      ctx.shadowColor = "rgba(10, 10, 15, 0.95)"
+      ctx.shadowColor = backdrop()
       ctx.shadowBlur = 12 * s
       // Two passes thicken the glyphs against the busy wireframe.
       ctx.fillText(text, x, y)
@@ -418,8 +424,8 @@ export default function GlobeScene({
     const drawReticle = (cx: number, cy: number, r: number, lock: number) => {
       if (lock < 0.02) return
       ctx.save()
-      ctx.strokeStyle = "#ffffff"
-      ctx.globalAlpha = lock * 0.22
+      ctx.strokeStyle = rgba(palette().line)
+      ctx.globalAlpha = lock * 0.22 * palette().lineAlpha
       ctx.lineWidth = 1
       ctx.setLineDash([2, 12])
       ctx.lineDashOffset = -elapsedMs * 0.006
@@ -428,7 +434,7 @@ export default function GlobeScene({
       ctx.stroke()
       ctx.setLineDash([])
 
-      ctx.strokeStyle = markerColor
+      ctx.strokeStyle = accent()
       ctx.globalAlpha = lock * 0.55
       ctx.lineWidth = 1.5
       for (let i = 0; i < 4; i++) {
@@ -465,7 +471,7 @@ export default function GlobeScene({
         ctx.translate(-cx, -cy)
 
         // Speed lines: a couple of ghosts trailing back up the path.
-        ctx.strokeStyle = "#ffffff"
+        ctx.strokeStyle = rgba(palette().line)
         ctx.lineWidth = 1
         for (let i = 1; i <= 2; i++) {
           ctx.globalAlpha = 0.12 * roll * (1 - i * 0.35)
@@ -479,8 +485,9 @@ export default function GlobeScene({
       // Accent bloom behind the sphere, strongest once it is locked on.
       if (lock > 0.01) {
         const glow = ctx.createRadialGradient(cx, cy, r * 0.1, cx, cy, r * 1.5)
-        glow.addColorStop(0, `rgba(77, 217, 208, ${0.1 * lock})`)
-        glow.addColorStop(1, "rgba(77, 217, 208, 0)")
+        const a = palette().accent
+        glow.addColorStop(0, rgba(a, 0.1 * lock))
+        glow.addColorStop(1, rgba(a, 0))
         ctx.fillStyle = glow
         ctx.fillRect(cx - r * 1.5, cy - r * 1.5, r * 3, r * 3)
       }

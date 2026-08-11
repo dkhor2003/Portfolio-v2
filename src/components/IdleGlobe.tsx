@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react"
 import * as d3 from "d3"
 import { loadGlobeData, type GlobeData } from "@/lib/globe-data"
 import { drawWireframe } from "@/lib/globe-render"
+import { palette, rgba } from "@/lib/palette"
 
 export interface IdleGlobeProps {
   /** Milliseconds between question-mark spawns. */
   spawnEvery?: number
   /** How long each mark stays before fading out, in milliseconds. */
   markLife?: number
+  /** Defaults to the theme's accent. */
   markColor?: string
   className?: string
 }
@@ -34,7 +36,7 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 export default function IdleGlobe({
   spawnEvery = 2000,
   markLife = 3000,
-  markColor = "#4dd9d0",
+  markColor,
   className,
 }: IdleGlobeProps) {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -150,8 +152,9 @@ export default function IdleGlobe({
       const [x, y] = projected
       ctx.save()
       ctx.globalAlpha = alpha
-      ctx.fillStyle = markColor
-      ctx.strokeStyle = markColor
+      const markInk = markColor ?? rgba(palette().accent)
+      ctx.fillStyle = markInk
+      ctx.strokeStyle = markInk
 
       // Ping ring on arrival, expanding once and fading.
       const ping = clamp01(age / 0.75)
@@ -173,7 +176,7 @@ export default function IdleGlobe({
       ctx.font = `700 ${30 * s * pop}px ui-monospace, SFMono-Regular, Menlo, monospace`
       ctx.textAlign = "center"
       ctx.textBaseline = "bottom"
-      ctx.shadowColor = "rgba(10, 10, 15, 0.95)"
+      ctx.shadowColor = rgba(palette().ink, 0.95)
       ctx.shadowBlur = 10 * s
       // Two passes thicken the glyph against the busy wireframe.
       ctx.fillText("?", x, y - 9 * s)

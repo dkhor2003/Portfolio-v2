@@ -77,10 +77,77 @@
   }
 }
 
+@layer base {
+  /*
+   * Portfolio palette. Channels only, so Tailwind can inject its own alpha via
+   * <alpha-value> — that is what keeps `bg-ink/70`, `border-fg/10` and friends
+   * working across both themes.
+   *
+   * Light is the default here and dark is the override, because `.dark` on <html>
+   * is what the theme toggle switches. The site ships dark: ThemeProvider puts
+   * that class on before first paint.
+   */
+  :root {
+    /* Warm paper rather than white — the dark theme is near-black and cool, so
+       the light one leans the other way instead of being a straight inversion. */
+    --ink: 244 237 225;
+    --card: 252 247 238;
+    --fg: 34 26 17;
+    --muted: 106 92 74;
+    /* Tertiary tier, but it carries small mono labels — kept at 4.5:1. */
+    --dim: 124 110 92;
+    --line: 60 45 30;
+    --line-alpha: 0.16;
+    /* Terracotta (#a2613f) — a warm accent that belongs to the beige family. */
+    --accent: 162 97 63;
+    /* Deepened from the dark theme's gold, which only managed 3.5:1 on paper. */
+    --latte: 138 85 20;
+
+    /* Canvas draws the globe by hand and cannot read Tailwind classes, so the
+       wireframe and its halftone dots get their own tokens. */
+    --globe-line: 58 44 30;
+    --globe-dot: 122 103 80;
+    --globe-line-alpha: 0.55;
+    /* Drop shadows are dark in both themes; only the tint and weight differ. */
+    --shadow: 92 70 44;
+    /* Backing for the holographic panels: paper, a shade darker than the page. */
+    --panel: 230 220 202;
+    /* The loader cup's rim and handle. */
+    --cup: 92 70 44;
+  }
+
+  .dark {
+    --ink: 10 10 15;
+    --card: 18 18 24;
+    --fg: 255 255 255;
+    --muted: 154 154 168;
+    --dim: 90 90 104;
+    --line: 255 255 255;
+    --line-alpha: 0.08;
+    --accent: 77 217 208;
+    --latte: 217 154 77;
+
+    --globe-line: 255 255 255;
+    --globe-dot: 153 153 153;
+    --globe-line-alpha: 1;
+    --shadow: 0 0 0;
+    --panel: 8 30 46;
+    --cup: 232 221 201;
+  }
+}
+
 html { scroll-behavior: auto; }
 body { margin: 0; }
-::selection { background: #4dd9d0; color: #0a0a0f; }
-input::placeholder, textarea::placeholder { color: #5a5a68; }
+
+/* Repainting the whole page on a theme switch is jarring; this eases the swap
+   without touching the many transitions components run themselves. */
+html.theme-shifting,
+html.theme-shifting body {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+::selection { background: rgb(var(--accent)); color: rgb(var(--ink)); }
+input::placeholder, textarea::placeholder { color: rgb(var(--dim)); }
 
 /* Hide the native pointer wherever CustomCursor takes over. Gated on the same
    media query the component uses, so touch devices keep their normal cursor. */

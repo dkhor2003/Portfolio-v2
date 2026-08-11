@@ -225,7 +225,7 @@ export default function ContactLaunch() {
               placeholder="Name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="bg-card border border-white/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent"
+              className="bg-card border border-fg/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent"
             />
             <input
               required
@@ -234,7 +234,7 @@ export default function ContactLaunch() {
               placeholder="Email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="bg-card border border-white/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent"
+              className="bg-card border border-fg/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent"
             />
             <textarea
               required
@@ -243,7 +243,7 @@ export default function ContactLaunch() {
               rows={4}
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
-              className="bg-card border border-white/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent resize-y"
+              className="bg-card border border-fg/10 rounded-lg px-4 py-3.5 text-sm outline-none focus:border-accent resize-y"
             />
             <button type="submit" className="hoverable bg-accent text-ink font-bold text-sm rounded-lg py-3.5 mt-1.5">
               Send message
@@ -267,16 +267,16 @@ export default function ContactLaunch() {
             <HoloFrame
               className="w-full max-w-lg text-left"
               // Denser than the project panel: this one sits over the globe.
-              panelClassName="bg-[rgba(7,26,40,0.72)] backdrop-blur-md"
+              panelClassName="bg-[rgb(var(--panel)/0.92)] dark:bg-[rgb(var(--panel)/0.88)] backdrop-blur-md"
             >
-              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-200/70">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_#67e8f9]" />
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-accent dark:text-cyan-200/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent dark:bg-cyan-300 shadow-[0_0_8px_rgb(var(--accent))]" />
                 Message sent
               </div>
 
               <motion.p
-                className="mt-3 font-display text-[clamp(1.05rem,2.6vw,1.6rem)] font-semibold leading-snug text-white"
-                style={{ textShadow: '0 0 20px rgba(110,215,255,0.45)' }}
+                className="mt-3 font-display text-[clamp(1.05rem,2.6vw,1.6rem)] font-semibold leading-snug text-fg"
+                style={{ textShadow: '0 0 20px rgb(var(--accent) / 0.45)' }}
                 initial="out"
                 animate="in"
                 variants={{ in: { transition: { staggerChildren: 0.032, delayChildren: 0.15 } }, out: {} }}
@@ -315,7 +315,7 @@ export default function ContactLaunch() {
             {puffs.map((puff) => (
               <motion.span
                 key={puff.id}
-                className="absolute rounded-full bg-white/20 blur-[10px]"
+                className="absolute rounded-full bg-fg/20 blur-[10px]"
                 initial={{ opacity: 0.5, scale: 0.4 }}
                 animate={{ opacity: 0, scale: 2.5, x: puff.drift, y: -38 }}
                 transition={{ duration: 1.6, ease: 'easeOut' }}

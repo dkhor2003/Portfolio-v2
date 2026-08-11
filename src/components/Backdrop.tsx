@@ -50,7 +50,7 @@ export default function Backdrop() {
         {COLUMNS.map((left) => (
           <div
             key={left}
-            className="absolute top-0 bottom-0 w-px bg-white transition-opacity duration-500"
+            className="absolute top-0 bottom-0 w-px bg-fg transition-opacity duration-500"
             style={{ left: `${left}%`, opacity: 0.045 }}
           />
         ))}

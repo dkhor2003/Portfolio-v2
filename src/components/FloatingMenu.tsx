@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Home, Wrench, FolderOpen, Mail, Coffee, FileText } from 'lucide-react';
 import CircularNavigation, { type NavItem } from './ui/circular-navigation-bar';
 import resumeUrl from '../assets/Dylan_Resume.pdf';
+import ThemeToggle from './ThemeToggle';
 
 /** Scroll distance past which the sticky-less navbar is considered gone. */
 const THRESHOLD = 90;
@@ -52,20 +53,27 @@ export default function FloatingMenu() {
 
   return (
     <>
+      {/* The navbar scrolls away, and with it the theme switch — so the floating
+          trigger carries its own, reachable without opening the menu. */}
       <AnimatePresence>
         {past && !isOpen && (
-          <motion.button
+          <motion.div
             key="menu-trigger"
             initial={{ opacity: 0, y: -14 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            onClick={toggleMenu}
-            aria-label="Open menu"
-            className="hoverable fixed top-6 right-6 md:right-14 z-50 font-mono text-[11px] font-bold uppercase tracking-[0.16em] bg-ink/80 backdrop-blur-md border border-white/25 rounded-full px-5 py-3 hover:border-accent hover:text-accent transition-colors"
+            className="fixed top-6 right-6 md:right-14 z-50 flex items-center gap-2.5"
           >
-            Menu
-          </motion.button>
+            <ThemeToggle className="h-11 w-11 bg-ink/80 backdrop-blur-md" />
+            <button
+              onClick={toggleMenu}
+              aria-label="Open menu"
+              className="hoverable font-mono text-[11px] font-bold uppercase tracking-[0.16em] bg-ink/80 backdrop-blur-md border border-fg/25 rounded-full px-5 py-3 hover:border-accent hover:text-accent transition-colors"
+            >
+              Menu
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
 

@@ -5,15 +5,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Portfolio palette (pre-existing — do not remap these to shadcn vars,
-        // `card`, `muted` and `accent` are used throughout src/pages/Home.tsx).
-        ink: '#0a0a0f',
-        card: '#121218',
-        line: 'rgba(255,255,255,0.08)',
-        muted: '#9a9aa8',
-        dim: '#5a5a68',
-        accent: '#4dd9d0',
-        latte: '#d99a4d',
+        // Portfolio palette. Backed by the CSS variables in src/index.css so a
+        // `.dark` class on <html> swaps the whole site; the channel-only syntax
+        // keeps Tailwind's opacity modifiers (`bg-ink/70`) working.
+        // Do not remap these to the shadcn vars — `card`, `muted` and `accent`
+        // are used throughout src/pages/Home.tsx.
+        ink: 'rgb(var(--ink) / <alpha-value>)',
+        card: 'rgb(var(--card) / <alpha-value>)',
+        // Primary text. Replaces the literal `white` these components used to
+        // hardcode, which of course could not invert.
+        fg: 'rgb(var(--fg) / <alpha-value>)',
+        line: 'rgb(var(--line) / var(--line-alpha))',
+        muted: 'rgb(var(--muted) / <alpha-value>)',
+        dim: 'rgb(var(--dim) / <alpha-value>)',
+        accent: 'rgb(var(--accent) / <alpha-value>)',
+        latte: 'rgb(var(--latte) / <alpha-value>)',
 
         // shadcn/ui tokens, driven by the CSS variables in src/index.css.
         background: 'var(--background)',

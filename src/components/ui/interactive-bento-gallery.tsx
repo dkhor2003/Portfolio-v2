@@ -90,7 +90,7 @@ const MediaItem = ({ item, className, onClick }: { item: MediaItemType, classNam
                 </video>
                 {isBuffering && (
                     <div className="absolute inset-0 flex items-center justify-center bg-ink/30">
-                        <div className="w-6 h-6 border-2 border-white/20 border-t-latte rounded-full animate-spin" />
+                        <div className="w-6 h-6 border-2 border-fg/20 border-t-latte rounded-full animate-spin" />
                     </div>
                 )}
             </div>
@@ -155,7 +155,7 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                                 key={selectedItem.id}
                                 // Sized to the photo rather than a fixed 16/9 box: these are
                                 // portrait pours, and a wide frame would letterbox them.
-                                className="relative max-h-[78vh] max-w-[min(92vw,52rem)] rounded-2xl overflow-hidden border border-line shadow-[0_40px_120px_-30px_rgba(0,0,0,0.95)]"
+                                className="relative max-h-[78vh] max-w-[min(92vw,52rem)] rounded-2xl overflow-hidden border border-line shadow-[0_40px_120px_-30px_rgb(var(--shadow)/0.6)]"
                                 initial={{ y: 20, scale: 0.97, opacity: 0 }}
                                 animate={{
                                     y: 0,
@@ -171,7 +171,7 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                                     onClick={onClose}
                                 />
                                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 bg-gradient-to-t from-ink via-ink/70 to-transparent">
-                                    <h3 className="font-display text-white text-base sm:text-lg md:text-xl font-semibold">
+                                    <h3 className="font-display text-fg text-base sm:text-lg md:text-xl font-semibold">
                                         {selectedItem.title}
                                     </h3>
                                     {selectedItem.desc && (
@@ -184,7 +184,7 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                 </div>
 
                 <motion.button
-                    className="hoverable absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 rounded-full border border-white/20 bg-card/70 text-muted backdrop-blur-sm transition-colors hover:border-latte hover:text-latte"
+                    className="hoverable absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 rounded-full border border-fg/20 bg-card/70 text-muted backdrop-blur-sm transition-colors hover:border-latte hover:text-latte"
                     onClick={onClose}
                     aria-label="Close"
                     whileHover={{ scale: 1.1 }}
@@ -223,7 +223,7 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                                     cursor-pointer hover:z-20
                                     ${selectedItem.id === item.id
                                         ? 'ring-2 ring-latte/80 shadow-lg'
-                                        : 'hover:ring-2 hover:ring-white/30'}
+                                        : 'hover:ring-2 hover:ring-fg/30'}
                                 `}
                                 initial={{ rotate: index % 2 === 0 ? -15 : 15 }}
                                 animate={{
@@ -239,7 +239,7 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                                 }}
                             >
                                 <MediaItem item={item} className="w-full h-full" onClick={() => setSelectedItem(item)} />
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-white/20" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-fg/5 to-fg/20" />
                                 {selectedItem.id === item.id && (
                                     <motion.div
                                         layoutId="activeGlow"
@@ -279,7 +279,7 @@ const InteractiveBentoGallery: React.FC<InteractiveBentoGalleryProps> = ({ media
                 <div className="mb-8 text-center">
                     {title && (
                         <motion.h2
-                            className="font-display text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-latte to-white"
+                            className="font-display text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-fg via-latte to-fg"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5 }}
@@ -365,11 +365,11 @@ const InteractiveBentoGallery: React.FC<InteractiveBentoGalleryProps> = ({ media
                                     transition={{ duration: 0.2 }}
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-                                    <h3 className="relative font-display text-white text-xs sm:text-sm md:text-base font-medium line-clamp-1">
+                                    <h3 className="relative font-display text-fg text-xs sm:text-sm md:text-base font-medium line-clamp-1">
                                         {item.title}
                                     </h3>
                                     {item.desc && (
-                                        <p className="relative text-white/70 text-[10px] sm:text-xs md:text-sm mt-0.5 line-clamp-2">
+                                        <p className="relative text-fg/70 text-[10px] sm:text-xs md:text-sm mt-0.5 line-clamp-2">
                                             {item.desc}
                                         </p>
                                     )}

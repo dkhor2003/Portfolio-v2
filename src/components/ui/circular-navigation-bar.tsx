@@ -68,7 +68,7 @@ export default function CircularNavigation({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
           // Below the custom cursor (z-9999) so the pointer stays on top.
-          className="fixed inset-0 z-[9000] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[9000] flex items-center justify-center bg-ink/85 backdrop-blur-sm"
           onClick={toggleMenu}
           role="dialog"
           aria-modal="true"
@@ -92,7 +92,7 @@ export default function CircularNavigation({
             <button
               onClick={toggleMenu}
               aria-label="Close menu"
-              className="absolute aspect-square flex items-center justify-center w-12 h-12 rounded-full bg-white text-black z-10 transition-transform hover:scale-110"
+              className="absolute aspect-square flex items-center justify-center w-12 h-12 rounded-full bg-fg text-ink z-10 transition-transform hover:scale-110"
             >
               <X className="w-6 h-6" />
             </button>
@@ -110,7 +110,7 @@ export default function CircularNavigation({
               );
 
               const className = `flex flex-col items-center justify-center aspect-square rounded-full no-underline transition-colors duration-200 ${
-                active ? 'bg-white text-black' : 'text-white'
+                active ? 'bg-fg text-ink' : 'text-fg'
               }`;
               const style = { width: itemSize, height: itemSize };
               const handlers = {

@@ -12,7 +12,7 @@ export default function LatteArt() {
         <p className="text-[15px] text-muted mt-4 max-w-lg mx-auto">
           A home barista who started learning to pour latte art since January 2026 through online tutorial videos. Any advice, suggestions, or criticisms are welcomed.
         </p>
-        <Link to="/" className="hoverable inline-block mt-6 text-sm font-mono text-[#c2c2cc]">← back to portfolio</Link>
+        <Link to="/" className="hoverable inline-block mt-6 text-sm font-mono text-muted">← back to portfolio</Link>
       </header>
 
       {/* The header above already names the page, so the gallery's own title and

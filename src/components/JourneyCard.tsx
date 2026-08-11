@@ -13,15 +13,15 @@ const item = {
 
 function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
   return (
-    <div className="hoverable relative rounded-[1.6rem] border border-line bg-card/75 backdrop-blur-md p-4 shadow-[0_36px_70px_-24px_rgba(0,0,0,0.95)]">
+    <div className="hoverable relative rounded-[1.6rem] border border-line bg-card/75 backdrop-blur-md p-4 shadow-[0_36px_70px_-24px_rgb(var(--shadow)/0.55)]">
       {/* Strips of tape, because it is a photo pinned to a board. */}
       <span
         aria-hidden
-        className="absolute -top-3.5 left-10 h-7 w-24 -rotate-[7deg] rounded-[3px] border border-white/10 bg-white/[0.07] backdrop-blur-sm"
+        className="absolute -top-3.5 left-10 h-7 w-24 -rotate-[7deg] rounded-[3px] border border-fg/10 bg-fg/[0.07] backdrop-blur-sm"
       />
       <span
         aria-hidden
-        className="absolute -top-2.5 right-8 h-6 w-16 rotate-[9deg] rounded-[3px] border border-white/10 bg-white/[0.05] backdrop-blur-sm"
+        className="absolute -top-2.5 right-8 h-6 w-16 rotate-[9deg] rounded-[3px] border border-fg/10 bg-fg/[0.05] backdrop-blur-sm"
       />
 
       <motion.div variants={item}>
@@ -39,13 +39,13 @@ function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
         <span className="font-mono text-[10px] tracking-[0.2em] text-dim">{stop.year}</span>
       </motion.div>
 
-      <motion.p variants={item} className="mt-2.5 text-[15px] leading-relaxed text-[#d7d7e0]">
+      <motion.p variants={item} className="mt-2.5 text-[15px] leading-relaxed text-fg/85">
         {stop.text}
       </motion.p>
 
       <motion.div variants={item} className="mt-4 flex items-center gap-2 font-mono text-[10px] text-dim">
         <span className="text-accent">{String(index + 1).padStart(2, '0')}</span>
-        <span className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
+        <span className="h-px flex-1 bg-gradient-to-r from-fg/20 to-transparent" />
         <span>
           {Math.abs(stop.pin.lat).toFixed(1)}°{stop.pin.lat >= 0 ? 'N' : 'S'} /{' '}
           {Math.abs(stop.pin.lng).toFixed(1)}°{stop.pin.lng >= 0 ? 'E' : 'W'}
