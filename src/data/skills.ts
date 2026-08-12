@@ -93,3 +93,6 @@ export const skills: Skill[] = [
       invert: inverted.has(slug),
     })),
 ]
+
+/** Lookup by slug, so other sections can reuse a skill's logo and label. */
+export const skillBySlug: Record<string, Skill> = Object.fromEntries(skills.map((s) => [s.slug, s]))

@@ -12,13 +12,6 @@ export const skillGroups = [
   { title: 'Currently learning', items: ['WebGPU', 'Rust', 'Latte pours'] },
 ];
 
-export const projects = [
-  { name: 'Project One', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['React', 'Three.js'] },
-  { name: 'Project Two', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['Node', 'Postgres'] },
-  { name: 'Project Three', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['TypeScript', 'WebGL'] },
-  { name: 'Project Four', description: 'Placeholder description of a shipped product — the problem, the approach, the result.', tags: ['Design', 'Motion'] },
-];
-
 // The about and experience sections were dropped — the journey stops between
 // the hero and the skills carousel tell that story instead.
 export const sectionIds = ['hero', 'skills', 'projects', 'contact'];

@@ -6,7 +6,9 @@ import { drawWireframe } from '@/lib/globe-render'
 import { contactGlobe } from '@/lib/globe-stage'
 import { palette, rgba } from '@/lib/palette'
 import HoloFrame from './HoloFrame'
-import { projects } from '../data/content'
+import { projects, projectImage, type Project } from '../data/projects'
+import { skillBySlug } from '../data/skills'
+import { GitHubIcon } from './SocialIcons'
 
 const N = projects.length
 /** Radians between neighbouring project nodes on the rim. */
@@ -18,6 +20,12 @@ const TOP = -Math.PI / 2
 
 /** Where the globe's apex sits while it is projecting, as a fraction of vh. */
 const PROJECTING_APEX = 0.62
+/**
+ * The panel grows upward from the beam and has to clear the section heading.
+ * On a short viewport there is not enough room between the two, so the globe
+ * drops and takes the beam with it, opening the space the panel needs.
+ */
+const projectingApex = (vh: number) => (vh < 880 ? 0.72 : PROJECTING_APEX)
 /** Where its lowest point sits once it has risen over the contact section. */
 const CONTACT_NADIR = 0.42
 /**
@@ -92,6 +100,7 @@ export default function ProjectHologram() {
     let vh = 0
     let cx = 0
     let r = 1
+    let apex = PROJECTING_APEX
     /** Beam length from the apex up to the top of the panel. */
     let beamLen = 0
 
@@ -118,7 +127,8 @@ export default function ProjectHologram() {
 
       cx = vw / 2
       r = vh * RADIUS
-      beamLen = vh * PROJECTING_APEX * 0.92
+      apex = projectingApex(vh)
+      beamLen = vh * apex * 0.92
 
       const scrollY = window.scrollY
       const rect = section.getBoundingClientRect()
@@ -138,7 +148,85 @@ export default function ProjectHologram() {
 
       // The panel hangs just above the parked apex, centred on the beam.
       panel.style.left = `${cx}px`
-      panel.style.top = `${vh * PROJECTING_APEX - vh * 0.08}px`
+      panel.style.top = `${vh * apex - vh * 0.08}px`
+
+      fitPanel()
+    }
+
+    /**
+     * Keeps the panel inside the room between the section's heading and the
+     * globe. The panel grows upward from the beam, so a tall screenshot pushes
+     * its top into the heading — measure what actually overflows and take it off
+     * the image, which is the only part that can give.
+     *
+     * Two passes: the cap has to be released before measuring, or the previous
+     * frame's cap is what gets measured.
+     */
+    /**
+     * Sizes the card, and picks the arrangement that yields the bigger image.
+     *
+     * Stacking the text under the screenshot costs height, which is the scarce
+     * axis; setting it beside costs width, which is plentiful on a wide screen
+     * and absent on a narrow one. Rather than guess a breakpoint, both are
+     * costed out against the room actually available and the better one wins.
+     */
+    const fitPanel = () => {
+      const shot = panel.querySelector<HTMLImageElement>('[data-shot]')
+      const wrap = panel.querySelector<HTMLElement>('[data-wrap]')
+      const meta = panel.querySelector<HTMLElement>('[data-meta]')
+      const frame = panel.querySelector<HTMLElement>('[data-frame]')
+      if (!shot || !wrap || !meta || !frame || !shot.naturalWidth) return
+
+      const ratio = shot.naturalWidth / shot.naturalHeight
+      const GAP = 24
+      const SIDE_TEXT = 272
+
+      // Measure with every cap released, or the previous frame's numbers are
+      // what get measured.
+      panel.style.width = ''
+      frame.style.width = ''
+      wrap.style.flexDirection = 'column'
+      meta.style.width = ''
+      shot.style.height = ''
+      const cssWidth = panel.offsetWidth
+      // Everything that is not the screenshot — slug row, metadata and the gaps.
+      // Measuring the metadata alone under-counts and the card runs into the
+      // heading.
+      const stackedChrome = panel.offsetHeight - shot.offsetHeight
+
+      const hud = section.querySelector('[data-hud]')?.getBoundingClientRect()
+      const floor = vh * apex - vh * 0.08
+      // The heading sits far left, so a card that clears it sideways gets the
+      // full height; only one wide enough to reach it is pushed below it.
+      const ceilingFor = (width: number) =>
+        !hud || cx - width / 2 > hud.right + 16 ? 96 : hud.bottom + 24
+
+      const stackHeight = Math.min(cssWidth / ratio, floor - ceilingFor(cssWidth) - stackedChrome)
+      const sideMax = Math.min(cssWidth, hud ? Math.max(320, 2 * (cx - hud.right - 16)) : cssWidth)
+      const sideHeight = Math.min((sideMax - SIDE_TEXT - GAP) / ratio, floor - ceilingFor(sideMax))
+
+      const side = sideHeight > stackHeight
+      let height = Math.max(90, side ? sideHeight : stackHeight)
+
+      const apply = (h: number) => {
+        const w = Math.round(h * ratio)
+        wrap.style.flexDirection = side ? 'row' : 'column'
+        wrap.style.alignItems = side ? 'center' : 'stretch'
+        meta.style.width = side ? `${SIDE_TEXT}px` : ''
+        meta.style.flexShrink = side ? '0' : ''
+        // The frame carries the width: as a flex child it would otherwise be
+        // shrunk by the layout, and Tailwind's `img { max-width: 100% }` would
+        // then clip the picture's width while its height stayed — squashing it.
+        frame.style.width = `${w}px`
+        shot.style.height = `${Math.round(h)}px`
+        panel.style.width = `${w + (side ? SIDE_TEXT + GAP : 0)}px`
+      }
+
+      apply(height)
+      // Text rewraps at the settled width, so the card can come out taller than
+      // predicted. Correct once against what it actually measures.
+      const overshoot = ceilingFor(panel.offsetWidth) - panel.getBoundingClientRect().top
+      if (overshoot > 1) apply(Math.max(90, height - overshoot))
     }
 
     /* ----- motes -------------------------------------------------- */
@@ -388,7 +476,7 @@ export default function ProjectHologram() {
       layer.style.opacity = alpha.toFixed(3)
 
       // Where the sphere's centre wants to be, on its climb up the page.
-      const parked = vh * PROJECTING_APEX + r
+      const parked = vh * apex + r
       let wanted: number
       if (y <= projStart) {
         const t = clamp01((y - riseFrom) / Math.max(projStart - riseFrom, 1))
@@ -439,6 +527,9 @@ export default function ProjectHologram() {
       if (shown !== best) {
         shown = best
         setActive(best)
+        // Titles differ in length, so the panel's height changes with the
+        // project — re-fit once React has painted the new content.
+        requestAnimationFrame(() => requestAnimationFrame(fitPanel))
       }
 
       ctx.clearRect(0, 0, vw, vh)
@@ -478,11 +569,14 @@ export default function ProjectHologram() {
 
       // The panel resolves with the light: it lifts, sharpens and brightens.
       panel.style.opacity = `${intensity}`
+      panel.style.pointerEvents = intensity > 0.65 ? 'auto' : 'none'
       panel.style.transform = `translate(-50%, -100%) perspective(1100px) rotateX(${(1 - intensity) * 12}deg) translateY(${(1 - intensity) * 26}px) scale(${0.94 + intensity * 0.06})`
       panel.style.filter = `blur(${(1 - intensity) * 7}px)`
     }
 
     measure()
+    // Screenshots decode after first paint and change the panel's height.
+    panel.querySelectorAll('img').forEach((img) => img.addEventListener('load', fitPanel))
     raf = requestAnimationFrame(frame)
 
     loadGlobeData().then(
@@ -515,14 +609,26 @@ export default function ProjectHologram() {
         <h2 className="font-display font-semibold text-3xl md:text-4xl mb-11">Things I've built</h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5">
           {projects.map((p) => (
-            <div key={p.name} className="bg-card border border-line rounded-2xl p-6">
-              <div className="font-display font-semibold text-lg">{p.name}</div>
+            <div key={p.title} className="bg-card border border-line rounded-2xl p-6">
+              <div className="font-display font-semibold text-lg">{p.title}</div>
               <p className="text-sm text-muted mt-2 leading-relaxed">{p.description}</p>
               <div className="flex flex-wrap gap-2 mt-4">
-                {p.tags.map((t) => (
-                  <span key={t} className="font-mono text-[11px] text-accent">{t}</span>
+                {p.stack.map((slug) => (
+                  <span key={slug} className="font-mono text-[11px] text-accent">
+                    {skillBySlug[slug]?.name ?? slug}
+                  </span>
                 ))}
               </div>
+              {p.github && (
+                <a
+                  href={p.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hoverable mt-4 inline-flex items-center gap-2 text-sm text-fg/80 hover:text-accent"
+                >
+                  <GitHubIcon className="h-4 w-4" /> Repository
+                </a>
+              )}
             </div>
           ))}
         </div>
@@ -543,18 +649,18 @@ export default function ProjectHologram() {
           {/* The whole HUD sits top-left: the globe fills the bottom of the
               screen edge to edge on narrow viewports, and the floating menu
               owns the top-right corner. */}
-          <div className="absolute top-8 left-6 md:left-14 z-10">
+          <div data-hud className="absolute top-8 left-6 md:left-14 z-10">
             <div className="font-mono text-[11px] text-accent uppercase tracking-[0.22em]">Selected work</div>
-            <h2 className="font-display font-semibold text-2xl md:text-3xl mt-2">Things I've built</h2>
+            <h2 className="font-display font-semibold text-lg lg:text-3xl mt-1 lg:mt-2">Things I've built</h2>
 
-            <div className="flex items-center gap-3 mt-5">
+            <div className="flex items-center gap-3 mt-2 lg:mt-5">
               <span className="font-mono text-[11px] text-accent tracking-[0.2em]">
                 {String(active + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
               </span>
               <div className="flex gap-1.5">
                 {projects.map((p, i) => (
                   <span
-                    key={p.name}
+                    key={p.title}
                     className={`h-1.5 rounded-full transition-all duration-500 ${
                       i === active ? 'w-6 bg-accent' : 'w-1.5 bg-fg/25'
                     }`}
@@ -562,7 +668,7 @@ export default function ProjectHologram() {
                 ))}
               </div>
             </div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-dim mt-2.5">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-dim mt-2.5 hidden lg:block [@media(max-height:760px)]:lg:hidden">
               Scroll to rotate the array
             </div>
           </div>
@@ -570,10 +676,10 @@ export default function ProjectHologram() {
           {/* The projected panel. Position and opacity are driven by the loop. */}
           <div
             ref={panelRef}
-            className="absolute z-10 w-[min(88vw,30rem)] origin-bottom will-change-transform"
+            className="absolute z-10 w-[min(92vw,clamp(28rem,64vw,88rem))] origin-bottom will-change-transform"
             style={{ opacity: 0 }}
           >
-            <HoloPanel index={active} name={project.name} description={project.description} tags={project.tags} />
+            <HoloPanel index={active} project={project} />
           </div>
         </div>
       </section>
@@ -581,47 +687,100 @@ export default function ProjectHologram() {
   )
 }
 
-/** One project, shown on the shared holographic panel. */
-function HoloPanel({
-  index,
-  name,
-  description,
-  tags,
-}: {
-  index: number
-  name: string
-  description: string
-  tags: string[]
-}) {
+/**
+ * One project.
+ *
+ * The frame holds the screenshot and nothing else — laying the text over it
+ * covered the very thing it is there to show. The slug, title, blurb and stack
+ * float around the frame on the page instead, so the image is never obscured
+ * and can take all the height that is going.
+ */
+function HoloPanel({ index, project }: { index: number; project: Project }) {
+  const shot = projectImage(project.image)
+
   return (
-    <HoloFrame>
-      <div className="flex items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-accent dark:text-cyan-200/70">
-        <span>Project {String(index + 1).padStart(2, '0')}</span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-accent dark:bg-cyan-300 shadow-[0_0_8px_rgb(var(--accent))]" />
-          Signal locked
+    <div data-wrap className="flex flex-col gap-3">
+      {/* !p-0 so the screenshot reaches the frame's edges — a plain p-0 would
+          lose to the base padding depending on stylesheet order. */}
+      <div data-frame className="shrink-0">
+      <HoloFrame panelClassName="!p-0 overflow-hidden">
+        <div className="relative">
+          {shot ? (
+            <img
+              data-shot
+              src={shot}
+              alt={project.title}
+              loading="lazy"
+              decoding="async"
+              className="block w-full"
+            />
+          ) : (
+            <div className="grid h-40 w-full place-items-center font-mono text-[10px] uppercase tracking-[0.18em] text-dim">
+              No screenshot yet
+            </div>
+          )}
+          {/* Scanlines, over the image rather than behind it. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-30"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(180deg, rgb(var(--accent) / 0.14) 0px, rgb(var(--accent) / 0.14) 1px, transparent 1px, transparent 4px)',
+            }}
+          />
+        </div>
+      </HoloFrame>
+      </div>
+
+      <div data-meta className="min-w-0">
+      <div className="flex items-center justify-between gap-4">
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent dark:text-cyan-200/80">
+          Project {String(index + 1).padStart(2, '0')}
         </span>
-      </div>
-
-      <h3
-        className="font-display font-semibold text-[1.6rem] leading-tight mt-3 text-fg"
-        style={{ textShadow: '0 0 20px rgb(var(--accent) / 0.45)' }}
-      >
-        {name}
-      </h3>
-
-      <p className="text-[14.5px] leading-relaxed text-muted dark:text-cyan-50/75 mt-3">{description}</p>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="rounded-[3px] border border-accent/35 bg-accent/[0.08] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-accent dark:border-cyan-300/25 dark:bg-cyan-300/[0.06] dark:text-cyan-100/85"
+        {project.github && (
+          <a
+            href={project.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${project.title} on GitHub`}
+            title="View on GitHub"
+            // The stage is pointer-events-none so it never blocks scrolling; the
+            // link opts back in, and the loop gates it on legibility.
+            className="hoverable pointer-events-auto rounded-full border border-accent/30 bg-ink/60 p-1.5 text-fg/80 backdrop-blur-sm transition-colors hover:border-accent hover:text-accent dark:border-cyan-300/25"
           >
-            {tag}
-          </span>
-        ))}
+            <GitHubIcon className="h-4 w-4" />
+          </a>
+        )}
       </div>
-    </HoloFrame>
+
+        <h3
+          className="font-display font-semibold text-[0.98rem] sm:text-[1.12rem] leading-snug text-fg"
+          style={{ textShadow: '0 2px 14px rgb(var(--ink))' }}
+        >
+          {project.title}
+        </h3>
+        <p className="mt-1 text-[12px] sm:text-[13px] leading-relaxed text-muted">{project.description}</p>
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          {project.stack.map((slug) => {
+            const skill = skillBySlug[slug]
+            if (!skill) return null
+            return (
+              <span
+                key={slug}
+                title={skill.name}
+                className="flex items-center gap-1.5 rounded-[3px] border border-accent/30 bg-ink/50 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-fg/85 backdrop-blur-sm dark:border-cyan-300/25"
+              >
+                <img
+                  src={skill.logo}
+                  alt=""
+                  className={`h-3 w-3 object-contain ${skill.invert ? 'dark:invert' : ''}`}
+                />
+                {skill.name}
+              </span>
+            )
+          })}
+        </div>
+      </div>
+    </div>
   )
 }
