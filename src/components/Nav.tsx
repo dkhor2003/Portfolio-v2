@@ -96,7 +96,7 @@ export default function Nav() {
       <Link to="/" className="font-display font-bold text-base tracking-tight">
         dylan<span className="text-accent">.dev</span>
       </Link>
-      <div className="hidden md:flex gap-7 text-[13px] font-medium text-muted">
+      <div className="hidden md:flex items-center gap-7 text-[13px] font-medium text-muted">
         {sectionIds
           .filter((id) => id !== 'hero')
           .map((id) => (

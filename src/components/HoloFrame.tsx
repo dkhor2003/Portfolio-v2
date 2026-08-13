@@ -13,16 +13,25 @@ export default function HoloFrame({
   children,
   className = '',
   panelClassName = '',
+  backdrop,
 }: {
   children: ReactNode
   className?: string
   panelClassName?: string
+  /**
+   * Rendered underneath the scanlines and the sweep, in normal flow, so it sets
+   * the panel's size and the holographic layers read as projected *onto* it.
+   * With one present the children overlay it instead of stacking below.
+   */
+  backdrop?: ReactNode
 }) {
   return (
     <div className={`relative ${className}`}>
       <div
         className={`relative overflow-hidden rounded-[4px] border border-accent/45 bg-[rgb(var(--panel)/0.8)] px-7 py-6 shadow-[0_0_70px_-14px_rgb(var(--accent)/0.35),inset_0_0_50px_rgb(var(--accent)/0.06)] backdrop-blur-[3px] dark:border-cyan-300/30 dark:bg-[rgb(var(--panel)/0.42)] dark:shadow-[0_0_70px_-14px_rgba(77,190,255,0.4),inset_0_0_50px_rgba(90,200,255,0.06)] ${panelClassName}`}
       >
+        {backdrop}
+
         {/* Scanlines. */}
         <div
           aria-hidden
@@ -39,7 +48,7 @@ export default function HoloFrame({
           style={{ background: 'linear-gradient(180deg, transparent, rgb(var(--accent) / 0.13), transparent)' }}
         />
 
-        <div className="relative">{children}</div>
+        <div className={backdrop ? 'absolute inset-0' : 'relative'}>{children}</div>
       </div>
 
       {/* Corner brackets, drawn outside the panel edge. */}

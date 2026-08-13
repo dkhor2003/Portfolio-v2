@@ -43,22 +43,25 @@ export const projects: Project[] = [
   // Template — fill these in the same shape. `image` is a file name in
   // assets/projects, `stack` is skill slugs from data/skills.ts.
   {
-    title: 'Project Two',
-    description: 'Short description of the problem, the approach, and the result.',
-    stack: ['typescript', 'react'],
-    github: '',
+    title: '3D Modeler',
+    description: 'Interface for designing object and landscape models that is compatible with Blender and SolidWorks.',
+    image: '3d_modeler.png',
+    stack: ['c++', 'vulkan'],
+    github: 'https://github.com/dkhor2003/3D_Modeler',
   },
   {
-    title: 'Project Three',
-    description: 'Short description of the problem, the approach, and the result.',
-    stack: ['python', 'docker'],
-    github: '',
+    title: 'Randomized Progressive Deblurring',
+    description: 'A novel progressive training approach for image classification models to improve generalization.',
+    image: 'progressive_deblurring.png',
+    stack: ['python', 'pytorch'],
+    github: 'https://github.com/dkhor2003/Progressive-Resizing-With-Randomized-Progressive-Deblurring',
   },
   {
-    title: 'Project Four',
-    description: 'Short description of the problem, the approach, and the result.',
-    stack: ['java', 'sql'],
-    github: '',
+    title: 'v2 Portfolio Website',
+    description: 'Version 2 of my personal portfolio website designed and developed to showcase my projects, technical skills, experience, and creative work. Integrated 3D visuals and scroll animations for a more engaging experience while ensuring responsiveness across different devices.',
+    image: 'portfolio_v2.png',
+    stack: ['typescript', 'react', 'tailwind-css', 'three', 'vite'],
+    github: 'https://github.com/dkhor2003/Portfolio-v2',
   },
 ]
 

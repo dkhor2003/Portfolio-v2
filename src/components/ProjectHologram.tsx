@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import * as d3 from 'd3'
-import { useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { Maximize2, X } from 'lucide-react'
 import { loadGlobeData, type GlobeData } from '@/lib/globe-data'
 import { drawWireframe } from '@/lib/globe-render'
 import { contactGlobe } from '@/lib/globe-stage'
@@ -78,7 +80,13 @@ export default function ProjectHologram() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
+  /** Non-null while the detail view is open: where the card's image flew from. */
+  const [detail, setDetail] = useState<{ from: DOMRect; ratio: number } | null>(null)
   const reduce = useReducedMotion()
+
+  const openDetail = useCallback((img: HTMLImageElement) => {
+    setDetail({ from: img.getBoundingClientRect(), ratio: img.naturalWidth / img.naturalHeight })
+  }, [])
 
   useEffect(() => {
     if (reduce) return
@@ -170,29 +178,21 @@ export default function ProjectHologram() {
      * and absent on a narrow one. Rather than guess a breakpoint, both are
      * costed out against the room actually available and the better one wins.
      */
+    /**
+     * Sizes the card to the screenshot. The collapsed card carries nothing but
+     * the picture, so the image gets the whole of the room available.
+     */
     const fitPanel = () => {
       const shot = panel.querySelector<HTMLImageElement>('[data-shot]')
-      const wrap = panel.querySelector<HTMLElement>('[data-wrap]')
-      const meta = panel.querySelector<HTMLElement>('[data-meta]')
       const frame = panel.querySelector<HTMLElement>('[data-frame]')
-      if (!shot || !wrap || !meta || !frame || !shot.naturalWidth) return
+      if (!shot || !frame || !shot.naturalWidth) return
 
       const ratio = shot.naturalWidth / shot.naturalHeight
-      const GAP = 24
-      const SIDE_TEXT = 272
 
-      // Measure with every cap released, or the previous frame's numbers are
-      // what get measured.
       panel.style.width = ''
       frame.style.width = ''
-      wrap.style.flexDirection = 'column'
-      meta.style.width = ''
       shot.style.height = ''
       const cssWidth = panel.offsetWidth
-      // Everything that is not the screenshot — slug row, metadata and the gaps.
-      // Measuring the metadata alone under-counts and the card runs into the
-      // heading.
-      const stackedChrome = panel.offsetHeight - shot.offsetHeight
 
       const hud = section.querySelector('[data-hud]')?.getBoundingClientRect()
       const floor = vh * apex - vh * 0.08
@@ -201,32 +201,17 @@ export default function ProjectHologram() {
       const ceilingFor = (width: number) =>
         !hud || cx - width / 2 > hud.right + 16 ? 96 : hud.bottom + 24
 
-      const stackHeight = Math.min(cssWidth / ratio, floor - ceilingFor(cssWidth) - stackedChrome)
-      const sideMax = Math.min(cssWidth, hud ? Math.max(320, 2 * (cx - hud.right - 16)) : cssWidth)
-      const sideHeight = Math.min((sideMax - SIDE_TEXT - GAP) / ratio, floor - ceilingFor(sideMax))
+      let height = Math.max(90, Math.min(cssWidth / ratio, floor - ceilingFor(cssWidth)))
+      // The card ends up narrower than the width the ceiling was judged against,
+      // so re-check with the real one — it may now clear the heading and grow.
+      height = Math.max(90, Math.min(cssWidth / ratio, floor - ceilingFor(height * ratio)))
 
-      const side = sideHeight > stackHeight
-      let height = Math.max(90, side ? sideHeight : stackHeight)
-
-      const apply = (h: number) => {
-        const w = Math.round(h * ratio)
-        wrap.style.flexDirection = side ? 'row' : 'column'
-        wrap.style.alignItems = side ? 'center' : 'stretch'
-        meta.style.width = side ? `${SIDE_TEXT}px` : ''
-        meta.style.flexShrink = side ? '0' : ''
-        // The frame carries the width: as a flex child it would otherwise be
-        // shrunk by the layout, and Tailwind's `img { max-width: 100% }` would
-        // then clip the picture's width while its height stayed — squashing it.
-        frame.style.width = `${w}px`
-        shot.style.height = `${Math.round(h)}px`
-        panel.style.width = `${w + (side ? SIDE_TEXT + GAP : 0)}px`
-      }
-
-      apply(height)
-      // Text rewraps at the settled width, so the card can come out taller than
-      // predicted. Correct once against what it actually measures.
-      const overshoot = ceilingFor(panel.offsetWidth) - panel.getBoundingClientRect().top
-      if (overshoot > 1) apply(Math.max(90, height - overshoot))
+      const width = Math.round(height * ratio)
+      // The frame carries the width: Tailwind's `img { max-width: 100% }` would
+      // otherwise clip the picture while its height stayed, squashing it.
+      frame.style.width = `${width}px`
+      shot.style.height = `${Math.round(height)}px`
+      panel.style.width = `${width}px`
     }
 
     /* ----- motes -------------------------------------------------- */
@@ -569,7 +554,10 @@ export default function ProjectHologram() {
 
       // The panel resolves with the light: it lifts, sharpens and brightens.
       panel.style.opacity = `${intensity}`
-      panel.style.pointerEvents = intensity > 0.65 ? 'auto' : 'none'
+      // A child that opts back into pointer events stays clickable inside a
+      // `none` parent, so the face is gated directly.
+      const face = panel.querySelector<HTMLElement>('[data-face]')
+      if (face) face.style.pointerEvents = intensity > 0.65 ? 'auto' : 'none'
       panel.style.transform = `translate(-50%, -100%) perspective(1100px) rotateX(${(1 - intensity) * 12}deg) translateY(${(1 - intensity) * 26}px) scale(${0.94 + intensity * 0.06})`
       panel.style.filter = `blur(${(1 - intensity) * 7}px)`
     }
@@ -679,88 +667,209 @@ export default function ProjectHologram() {
             className="absolute z-10 w-[min(92vw,clamp(28rem,64vw,88rem))] origin-bottom will-change-transform"
             style={{ opacity: 0 }}
           >
-            <HoloPanel index={active} project={project} />
+            <HoloPanel index={active} project={project} onOpen={openDetail} />
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {detail && (
+          <ProjectDetail
+            key="detail"
+            project={project}
+            index={active}
+            from={detail.from}
+            ratio={detail.ratio}
+            onClose={() => setDetail(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }
 
 /**
- * One project.
+ * The collapsed card: the projected screenshot, and nothing else but its slug
+ * and title. The picture sits behind the holographic layers rather than in
+ * front of them, so the tint, scanlines and sweep read as falling *onto* it —
+ * with the image on top the frame was just four corner brackets.
  *
- * The frame holds the screenshot and nothing else — laying the text over it
- * covered the very thing it is there to show. The slug, title, blurb and stack
- * float around the frame on the page instead, so the image is never obscured
- * and can take all the height that is going.
+ * Clicking it opens the detail view.
  */
-function HoloPanel({ index, project }: { index: number; project: Project }) {
+function HoloPanel({
+  index,
+  project,
+  onOpen,
+}: {
+  index: number
+  project: Project
+  onOpen: (img: HTMLImageElement) => void
+}) {
   const shot = projectImage(project.image)
+  const imgRef = useRef<HTMLImageElement>(null)
 
   return (
-    <div data-wrap className="flex flex-col gap-3">
-      {/* !p-0 so the screenshot reaches the frame's edges — a plain p-0 would
-          lose to the base padding depending on stylesheet order. */}
-      <div data-frame className="shrink-0">
-      <HoloFrame panelClassName="!p-0 overflow-hidden">
-        <div className="relative">
-          {shot ? (
-            <img
-              data-shot
-              src={shot}
-              alt={project.title}
-              loading="lazy"
-              decoding="async"
-              className="block w-full"
-            />
+    <div data-frame className="shrink-0">
+      <HoloFrame
+        panelClassName="!p-0 overflow-hidden"
+        backdrop={
+          shot ? (
+            <>
+              <img
+                data-shot
+                ref={imgRef}
+                src={shot}
+                alt={project.title}
+                loading="lazy"
+                decoding="async"
+                className="block w-full"
+              />
+              {/* Projection wash: the image reads through it, but it is no
+                  longer a plain photograph with brackets around it. */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-accent/15 dark:bg-cyan-300/10"
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    'radial-gradient(120% 90% at 50% 120%, rgb(var(--accent) / 0.28), transparent 60%)',
+                }}
+              />
+            </>
           ) : (
             <div className="grid h-40 w-full place-items-center font-mono text-[10px] uppercase tracking-[0.18em] text-dim">
               No screenshot yet
             </div>
-          )}
-          {/* Scanlines, over the image rather than behind it. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-30"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(180deg, rgb(var(--accent) / 0.14) 0px, rgb(var(--accent) / 0.14) 1px, transparent 1px, transparent 4px)',
-            }}
-          />
-        </div>
-      </HoloFrame>
-      </div>
+          )
+        }
+      >
+        {/* The whole face is the control. pointer-events-auto opts back in from
+            the stage's pointer-events-none; the loop gates it on legibility. */}
+        <button
+          type="button"
+          onClick={() => imgRef.current && onOpen(imgRef.current)}
+          aria-label={`Open ${project.title}`}
+          data-face
+          className="hoverable group absolute inset-0 flex flex-col justify-between text-left"
+        >
+          <span className="bg-gradient-to-b from-ink/85 to-transparent px-3 pb-6 pt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-accent dark:text-cyan-200/85">
+            Project {String(index + 1).padStart(2, '0')}
+          </span>
 
-      <div data-meta className="min-w-0">
-      <div className="flex items-center justify-between gap-4">
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent dark:text-cyan-200/80">
+          <span className="bg-gradient-to-t from-ink/90 via-ink/60 to-transparent px-3 pb-3 pt-8">
+            <span
+              className="block font-display text-[0.9rem] sm:text-[1.05rem] font-semibold leading-snug text-fg"
+              style={{ textShadow: '0 2px 14px rgb(var(--ink))' }}
+            >
+              {project.title}
+            </span>
+            <span className="mt-1.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-accent opacity-80 transition-opacity group-hover:opacity-100 dark:text-cyan-200/85">
+              <Maximize2 className="h-3 w-3" /> View details
+            </span>
+          </span>
+        </button>
+      </HoloFrame>
+    </div>
+  )
+}
+
+/** Where the screenshot lands once the detail view is open. */
+function detailTarget(ratio: number) {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  if (vw >= 900) {
+    // Left half, with the write-up on the right.
+    const height = Math.min((vw * 0.52 - 96) / ratio, vh - 96)
+    const width = height * ratio
+    return { left: (vw * 0.52 - width) / 2, top: (vh - height) / 2, width, height }
+  }
+  // Too narrow to sit side by side: image on top, write-up beneath.
+  const height = Math.min((vw - 48) / ratio, vh * 0.42)
+  const width = height * ratio
+  return { left: (vw - width) / 2, top: 64, width, height }
+}
+
+/**
+ * The detail view. The screenshot flies from wherever it was on the card to the
+ * left of the screen, and the write-up fades in beside it.
+ *
+ * The flight is animated from a measured rect rather than with a shared layout
+ * id: the card lives inside a stage the render loop is actively transforming,
+ * and a layout animation reparenting out of that lands in the wrong place.
+ */
+function ProjectDetail({
+  project,
+  index,
+  from,
+  ratio,
+  onClose,
+}: {
+  project: Project
+  index: number
+  from: DOMRect
+  ratio: number
+  onClose: () => void
+}) {
+  const [target] = useState(() => detailTarget(ratio))
+  const shot = projectImage(project.image)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKey)
+    const previous = document.body.style.overflow
+    // The page must not scroll under the overlay — it would swap the project
+    // out from behind it.
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previous
+    }
+  }, [onClose])
+
+  const rest = { left: from.left, top: from.top, width: from.width, height: from.height }
+
+  // Portalled to the body: the app's content sits inside a `z-10` wrapper, which
+  // is its own stacking context — inside it no z-index can climb over the
+  // floating menu at z-50, which would swallow clicks on the close button.
+  return createPortal(
+    <motion.div
+      className="fixed inset-0 z-[110]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.35 }}
+    >
+      <div className="absolute inset-0 bg-ink/[0.97] backdrop-blur-2xl" onClick={onClose} />
+
+      <motion.img
+        src={shot}
+        alt={project.title}
+        className="fixed rounded-[4px] border border-accent/45 object-contain shadow-[0_0_80px_-18px_rgb(var(--accent)/0.5)] dark:border-cyan-300/35"
+        initial={rest}
+        animate={target}
+        exit={rest}
+        transition={{ type: 'spring', stiffness: 210, damping: 28 }}
+      />
+
+      <motion.div
+        className="absolute bottom-0 right-0 top-0 flex w-full flex-col justify-center overflow-y-auto px-6 pb-10 pt-[52vh] sm:px-10 md:w-[48vw] md:pt-10"
+        initial={{ opacity: 0, x: 24 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 24 }}
+        transition={{ duration: 0.4, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent dark:text-cyan-200">
           Project {String(index + 1).padStart(2, '0')}
         </span>
-        {project.github && (
-          <a
-            href={project.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${project.title} on GitHub`}
-            title="View on GitHub"
-            // The stage is pointer-events-none so it never blocks scrolling; the
-            // link opts back in, and the loop gates it on legibility.
-            className="hoverable pointer-events-auto rounded-full border border-accent/30 bg-ink/60 p-1.5 text-fg/80 backdrop-blur-sm transition-colors hover:border-accent hover:text-accent dark:border-cyan-300/25"
-          >
-            <GitHubIcon className="h-4 w-4" />
-          </a>
-        )}
-      </div>
-
-        <h3
-          className="font-display font-semibold text-[0.98rem] sm:text-[1.12rem] leading-snug text-fg"
-          style={{ textShadow: '0 2px 14px rgb(var(--ink))' }}
-        >
+        <h3 className="mt-3 font-display text-[1.3rem] sm:text-[1.7rem] font-semibold leading-snug text-fg">
           {project.title}
         </h3>
-        <p className="mt-1 text-[12px] sm:text-[13px] leading-relaxed text-muted">{project.description}</p>
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <p className="mt-4 max-w-prose text-[14px] sm:text-[15px] leading-relaxed text-muted">{project.description}</p>
+
+        <div className="mt-6 flex flex-wrap items-center gap-2">
           {project.stack.map((slug) => {
             const skill = skillBySlug[slug]
             if (!skill) return null
@@ -768,19 +877,40 @@ function HoloPanel({ index, project }: { index: number; project: Project }) {
               <span
                 key={slug}
                 title={skill.name}
-                className="flex items-center gap-1.5 rounded-[3px] border border-accent/30 bg-ink/50 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-fg/85 backdrop-blur-sm dark:border-cyan-300/25"
+                className="flex items-center gap-2 rounded-[3px] border border-accent/30 bg-accent/[0.07] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-fg/85 dark:border-cyan-300/25"
               >
                 <img
                   src={skill.logo}
                   alt=""
-                  className={`h-3 w-3 object-contain ${skill.invert ? 'dark:invert' : ''}`}
+                  className={`h-4 w-4 object-contain ${skill.invert ? 'dark:invert' : ''}`}
                 />
                 {skill.name}
               </span>
             )
           })}
         </div>
-      </div>
-    </div>
+
+        {project.github && (
+          <a
+            href={project.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hoverable mt-7 inline-flex w-fit items-center gap-2.5 rounded-full border border-accent/40 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-fg transition-colors hover:border-accent hover:text-accent"
+          >
+            <GitHubIcon className="h-4 w-4" /> View repository
+          </a>
+        )}
+      </motion.div>
+
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close project"
+        className="hoverable absolute right-5 top-5 rounded-full border border-fg/20 bg-ink/70 p-2.5 text-muted backdrop-blur-sm transition-colors hover:border-accent hover:text-accent"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </motion.div>,
+    document.body,
   )
 }
