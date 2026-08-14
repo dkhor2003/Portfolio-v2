@@ -1,7 +1,9 @@
-import { motion, useReducedMotion } from 'motion/react';
-import ImageDropSlot from './ImageDropSlot';
+import { useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { Maximize2 } from 'lucide-react';
 import { STACKED_QUERY, useMediaQuery } from '@/hooks/use-media-query';
-import type { JourneyStop } from '../data/journey';
+import JourneyDetail from './JourneyDetail';
+import { stopImage, type JourneyStop } from '../data/journey';
 
 const SPRING = { type: 'spring', stiffness: 68, damping: 13, mass: 0.9 } as const;
 
@@ -11,9 +13,9 @@ const item = {
   in: { opacity: 1, y: 0 },
 };
 
-function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
+function CardFace({ stop, index, onOpen }: { stop: JourneyStop; index: number; onOpen: () => void }) {
   return (
-    <div className="hoverable relative rounded-[1.6rem] border border-line bg-card/75 backdrop-blur-md p-4 shadow-[0_36px_70px_-24px_rgb(var(--shadow)/0.55)]">
+    <div className="hoverable group relative rounded-[1.6rem] border border-line bg-card/75 backdrop-blur-md p-4 shadow-[0_36px_70px_-24px_rgb(var(--shadow)/0.55)]">
       {/* Strips of tape, because it is a photo pinned to a board. */}
       <span
         aria-hidden
@@ -24,13 +26,18 @@ function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
         className="absolute -top-2.5 right-8 h-6 w-16 rotate-[9deg] rounded-[3px] border border-fg/10 bg-fg/[0.05] backdrop-blur-sm"
       />
 
-      <motion.div variants={item}>
-        {/* Shorter frame when stacked: the card has to clear the globe's pin
-            label below it, and a 4:3 photo makes it too tall to. */}
-        <ImageDropSlot
-          id={`journey-${stop.id}`}
-          placeholder="Drop a photo"
-          className="aspect-[16/10] lg:aspect-[4/3] w-full"
+      {/* Shorter frame when stacked: the card has to clear the globe's pin
+          label below it, and a 4:3 photo makes it too tall to. */}
+      <motion.div
+        variants={item}
+        className="relative aspect-[16/10] lg:aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line bg-card"
+      >
+        <img
+          src={stopImage(stop.image)}
+          alt={stop.alt}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
         />
       </motion.div>
 
@@ -43,6 +50,15 @@ function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
         {stop.text}
       </motion.p>
 
+      {stop.expandable && (
+        <motion.span
+          variants={item}
+          className="mt-3 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-accent opacity-75 transition-opacity group-hover:opacity-100"
+        >
+          <Maximize2 className="h-3 w-3" /> Click to expand
+        </motion.span>
+      )}
+
       <motion.div variants={item} className="mt-4 flex items-center gap-2 font-mono text-[10px] text-dim">
         <span className="text-accent">{String(index + 1).padStart(2, '0')}</span>
         <span className="h-px flex-1 bg-gradient-to-r from-fg/20 to-transparent" />
@@ -51,6 +67,18 @@ function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
           {Math.abs(stop.pin.lng).toFixed(1)}°{stop.pin.lng >= 0 ? 'E' : 'W'}
         </span>
       </motion.div>
+
+      {/* The whole face is the control, laid over it rather than wrapped around
+          it — a button may not hold the paragraphs and headings inside. */}
+      {stop.expandable && (
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-haspopup="dialog"
+          aria-label={`Expand ${stop.pin.label}, ${stop.year}`}
+          className="hoverable absolute inset-0 rounded-[1.6rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+        />
+      )}
     </div>
   );
 }
@@ -63,12 +91,18 @@ function CardFace({ stop, index }: { stop: JourneyStop; index: number }) {
 export function JourneyCard({ stop, index }: { stop: JourneyStop; index: number }) {
   const reduce = useReducedMotion();
   const stackedLayout = useMediaQuery(STACKED_QUERY);
+  const [open, setOpen] = useState(false);
   const dir = stop.from === 'left' ? -1 : 1;
+
+  const detail = (
+    <AnimatePresence>{open && <JourneyDetail stop={stop} onClose={() => setOpen(false)} />}</AnimatePresence>
+  );
 
   if (reduce) {
     return (
       <div className="w-[min(86vw,25rem)]">
-        <CardFace stop={stop} index={index} />
+        <CardFace stop={stop} index={index} onOpen={() => setOpen(true)} />
+        {detail}
       </div>
     );
   }
@@ -102,9 +136,10 @@ export function JourneyCard({ stop, index }: { stop: JourneyStop; index: number 
           fights the transforms motion drives above and below it. */}
       <div className="animate-floaty" style={{ animationDelay: `${index * 0.9}s` }}>
         <motion.div style={{ rotate: dir * -1.6 }} whileHover={{ rotate: 0, y: -10, scale: 1.025 }} transition={SPRING}>
-          <CardFace stop={stop} index={index} />
+          <CardFace stop={stop} index={index} onOpen={() => setOpen(true)} />
         </motion.div>
       </div>
+      {detail}
     </motion.article>
   );
 }

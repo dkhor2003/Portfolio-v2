@@ -218,13 +218,21 @@ export default function Home() {
         <JourneySection key={stop.id} stop={stop} index={i} />
       ))}
 
-      {/* Full-bleed: the marquees run edge to edge, the copy stays in the grid. */}
-      <section id="skills" className="relative z-10 py-24 overflow-hidden">
-        <div className="px-6 md:px-20 max-w-6xl mx-auto">
+      {/* Full-bleed: the marquees run edge to edge, the copy stays in the grid.
+          Clipped on x only, and lifted above the projects section, so a bubble
+          popped off the bottom row can hang past the end of the section instead
+          of being cut off by it — the padding below the rows is no longer deep
+          enough to hold one, and the projects title follows straight on. */}
+      <section id="skills" className="relative z-20 pt-24 overflow-x-clip">
+        {/* Pinned to the viewport gutter, not a centred column — the projects
+            heading below does the same, and the two have to start on the same
+            line however wide the screen gets. */}
+        <div className="px-6 md:px-14">
           <Reveal>
             <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Skills</div>
-            <h2 className="font-display font-semibold text-3xl md:text-4xl">Tools of the trade</h2>
-            <p className="text-[15px] text-muted mt-4 max-w-md">Hover a logo to pause its row and see where I stand with it.</p>
+            {/* Same steps as the projects heading, so the two section titles
+                grow and shrink together rather than one shouting on a phone. */}
+            <h2 className="font-display font-semibold text-lg lg:text-3xl">Tools I have experienced with</h2>
           </Reveal>
         </div>
         <SkillCarousel />

@@ -194,9 +194,11 @@ export default function SkillCarousel() {
   }
 
   return (
-    // The vertical padding reserves room for a bubble to pop outside the rows
-    // without colliding with the copy above or the section below.
-    <div ref={wrapRef} className="relative py-36 md:py-40">
+    // The top padding reserves room for a bubble to pop above the rows without
+    // colliding with the copy. Below them it only has to clear the rows: the
+    // section lets a bubble overhang its end, and the projects heading starts
+    // right after.
+    <div ref={wrapRef} className="relative pt-36 md:pt-40 pb-16 md:pb-20">
       <div className="flex flex-col gap-5 md:gap-7">
         {rows.map((items, row) => (
           <Row

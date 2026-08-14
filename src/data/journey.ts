@@ -1,3 +1,23 @@
+/**
+ * Stop photos, picked up automatically — drop a file in assets/about and
+ * reference it by file name below.
+ */
+const images = import.meta.glob('../assets/about/*.{png,jpg,jpeg,webp,avif}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
+
+const byFileName: Record<string, string> = {}
+for (const [path, url] of Object.entries(images)) {
+  byFileName[path.split('/').pop()!] = url
+}
+
+/** Resolved URL for a file name inside assets/about. */
+export function stopImage(file: string): string | undefined {
+  return byFileName[file]
+}
+
 export interface Pin {
   lng: number
   lat: number
@@ -7,6 +27,12 @@ export interface Pin {
    * Only the hero pin uses them, to say plainly that this is where I am now.
    */
   notes?: string[]
+  /**
+   * File name inside assets/about. The pin grows a portrait, parked outside the
+   * globe with a cone pointing at the spot — so "here I am" survives the spin
+   * even once the place itself turns to the far side.
+   */
+  avatar?: string
 }
 
 /** Globe placement while a stop is parked, in viewport fractions. */
@@ -29,6 +55,15 @@ export interface JourneyStop {
   from: "left" | "right"
   year: string
   text: string
+  /** File name inside assets/about. */
+  image: string
+  /** What the photo shows, for screen readers. */
+  alt: string
+  /**
+   * Whether the card opens into a detail overlay. True cards say so on their
+   * face; what they open into lives in data/journey-details.tsx, keyed by id.
+   */
+  expandable: boolean
 }
 
 /** Where the hero globe idles, before the journey takes over. */
@@ -36,6 +71,7 @@ export const heroPin: Pin = {
   lng: -93.6,
   lat: 41.6,
   label: "IOWA, USA",
+  avatar: "dylan.png",
   notes: [
     "↑ you are looking at my desk",
     "↑ currently based here",
@@ -65,6 +101,9 @@ export const journey: JourneyStop[] = [
     from: "left",
     year: "2003",
     text: "I was born here.",
+    image: "baby.png",
+    alt: "Me as a baby.",
+    expandable: false,
   },
   {
     id: "stop-penang",
@@ -74,6 +113,9 @@ export const journey: JourneyStop[] = [
     from: "right",
     year: "2005 - 2021",
     text: "Moved to Malaysia at the age of 2, and lived there for 16 years.",
+    image: "penang.png",
+    alt: "Penang, Malaysia.",
+    expandable: true,
   },
   {
     id: "stop-ames",
@@ -83,6 +125,9 @@ export const journey: JourneyStop[] = [
     from: "left",
     year: "2021 - 2025",
     text: "Went to Iowa State University. Got my BSc in Bioinformatics and MSc in Computer Science.",
+    image: "isu.png",
+    alt: "Iowa State University campus.",
+    expandable: true,
   },
   {
     // Same city as the stop below: the globe holds still here and only the pin
@@ -94,6 +139,9 @@ export const journey: JourneyStop[] = [
     from: "right",
     year: "2025",
     text: "Landed my first tech job as a Software Engineer Apprentice at Source Allies.",
+    image: "source_allies.png",
+    alt: "Source Allies.",
+    expandable: true,
   },
   {
     // Globe and pin both hold — only the card changes hands.
@@ -105,5 +153,8 @@ export const journey: JourneyStop[] = [
     year: "2026 - PRESENT",
     text:
       "After receiving my MSc, I started working as a Software Developer as part of Musco Lighting's Emerging Tech group.",
+    image: "musco.png",
+    alt: "Musco Lighting.",
+    expandable: true,
   },
 ]

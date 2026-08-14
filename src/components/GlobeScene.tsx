@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import * as d3 from "d3"
 import { loadGlobeData, type GlobeData } from "@/lib/globe-data"
 import { drawWireframe } from "@/lib/globe-render"
-import { heroPin, journey, type Pin } from "@/data/journey"
+import { heroPin, journey, stopImage, type Pin } from "@/data/journey"
 import { STACK_BELOW } from "@/hooks/use-media-query"
 import { palette, rgba } from "@/lib/palette"
 
@@ -28,6 +28,9 @@ const GRAB_UNTIL = 0.25
 const NOTE_CYCLE = 4600
 const NOTE_TYPE = 1000
 const NOTE_FADE = 700
+/** Portrait marker: radius as a share of the globe, and a floor in pixels. */
+const FACE_R = 0.19
+const FACE_MIN_R = 26
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
@@ -297,6 +300,14 @@ export default function GlobeScene({
       ctx.arc(x, y, 4.5 * s, 0, 2 * Math.PI)
       ctx.fill()
 
+      // A portrait pin brings its own pointer — the cone drawn from outside the
+      // globe — so the stem and arrowhead would be a second one aimed at the
+      // same dot.
+      if (pin.avatar) {
+        ctx.restore()
+        return { x, y: y - 16 * s, dotY: y, fade }
+      }
+
       const tipY = y - 14 * s
       const tailY = y - 52 * s
       ctx.lineWidth = 2 * s
@@ -314,6 +325,47 @@ export default function GlobeScene({
       ctx.restore()
 
       return { x, y: tailY - 9 * s, dotY: y, fade }
+    }
+
+    /* ----- the portrait marker ------------------------------------- */
+
+    const faces = new Map<string, HTMLImageElement>()
+    /** The decoded portrait for a file in assets/about, or null until it lands. */
+    const faceImage = (file: string) => {
+      let img = faces.get(file)
+      if (!img) {
+        const src = stopImage(file)
+        if (!src) return null
+        img = new Image()
+        img.src = src
+        faces.set(file, img)
+      }
+      return img.complete && img.naturalWidth ? img : null
+    }
+
+    /**
+     * Where a place sits in view space, as offsets from the globe's centre in
+     * radii. `behind` is the far side of the sphere, where the offset is pushed
+     * out to the rim the place disappeared behind — so a marker tracking it
+     * slides around the edge instead of vanishing.
+     */
+    const viewOffset = (pin: Pin) => {
+      const [lng, lat] = d3.geoRotation(projection.rotate())([pin.lng, pin.lat])
+      const cosLat = Math.cos(lat * DEG)
+      let x = cosLat * Math.sin(lng * DEG)
+      let y = -Math.sin(lat * DEG)
+      const behind = cosLat * Math.cos(lng * DEG) < 0
+      if (behind) {
+        const m = Math.hypot(x, y)
+        if (m > 1e-6) {
+          x /= m
+          y /= m
+        } else {
+          x = 0
+          y = -1
+        }
+      }
+      return { x, y, behind }
     }
 
     /**
@@ -359,14 +411,23 @@ export default function GlobeScene({
       ctx.restore()
     }
 
-    const drawLabel = (x: number, y: number, text: string, alpha: number, s: number) => {
+    const labelFont = (s: number) => `700 ${18 * s}px ui-monospace, SFMono-Regular, Menlo, monospace`
+
+    const drawLabel = (
+      x: number,
+      y: number,
+      text: string,
+      alpha: number,
+      s: number,
+      baseline: CanvasTextBaseline = "bottom",
+    ) => {
       if (alpha <= 0.01) return
       ctx.save()
       ctx.globalAlpha = alpha
       ctx.fillStyle = accent()
-      ctx.font = `700 ${18 * s}px ui-monospace, SFMono-Regular, Menlo, monospace`
+      ctx.font = labelFont(s)
       ctx.textAlign = "center"
-      ctx.textBaseline = "bottom"
+      ctx.textBaseline = baseline
       ctx.letterSpacing = `${1.5 * s}px`
       ctx.shadowColor = backdrop()
       ctx.shadowBlur = 12 * s
@@ -377,34 +438,151 @@ export default function GlobeScene({
     }
 
     /**
+     * The portrait: a round photo parked just outside the globe, with a cone
+     * running from its edge down onto the place itself.
+     *
+     * It is the one marker that never hides. The photo rides the rim on the
+     * bearing of the place, so as the globe turns it orbits the edge; once the
+     * place crosses to the far side the cone simply points at the rim it went
+     * behind, and dims to say so.
+     */
+    const drawFace = (pin: Pin, alpha: number, s: number, cx: number, cy: number, r: number) => {
+      if (!pin.avatar || alpha <= 0.02) return
+      const img = faceImage(pin.avatar)
+      if (!img) return
+
+      const off = viewOffset(pin)
+      const tipX = cx + off.x * r
+      const tipY = cy + off.y * r
+
+      // Straight out from the centre through the place, so the photo never sits
+      // on top of the wireframe it is pointing into.
+      const m = Math.hypot(off.x, off.y)
+      const dx = m > 1e-6 ? off.x / m : 0
+      const dy = m > 1e-6 ? off.y / m : -1
+
+      // Outside the rim, and far enough past the place itself that the cone is
+      // always a cone. The two only differ near the limb — where the place is
+      // almost on the rim — so the photo eases outward as it dips behind.
+      const R = Math.max(FACE_MIN_R, r * FACE_R)
+      const reach = Math.max(r + 12 * s, Math.hypot(off.x, off.y) * r + 40 * s) + R
+      let x = cx + dx * reach
+      let y = cy + dy * reach
+
+      // The globe is allowed to run off the edge of the screen. The photo is
+      // not — it is the one thing here that has to stay in view.
+      ctx.save()
+      ctx.font = labelFont(s)
+      // Measured the way it is drawn, tracking included, or the label overhangs
+      // the edge the clamp below is meant to keep it inside of.
+      ctx.letterSpacing = `${1.5 * s}px`
+      const halfLabel = ctx.measureText(pin.label).width / 2 + 4 * s
+      ctx.restore()
+      const padX = Math.max(R, halfLabel) + 10
+      const padY = R + 34 * s
+      x = Math.min(Math.max(x, padX), vw - padX)
+      y = Math.min(Math.max(y, padY), vh - padY)
+
+      ctx.save()
+      ctx.globalAlpha = alpha
+
+      // Cone: the two tangents from the place to the photo, so it reads as one
+      // shape with the circle rather than a triangle stuck against it.
+      const L = Math.hypot(x - tipX, y - tipY)
+      if (L > R + 2) {
+        const bx = (tipX - x) / L
+        const by = (tipY - y) / L
+        const beta = Math.acos(Math.min(1, R / L))
+        const cb = Math.cos(beta)
+        const sb = Math.sin(beta)
+        const accentRGB = palette().accent
+        const cone = ctx.createLinearGradient(tipX, tipY, x, y)
+        cone.addColorStop(0, rgba(accentRGB, off.behind ? 0.16 : 0.3))
+        cone.addColorStop(1, rgba(accentRGB, off.behind ? 0.45 : 0.85))
+        ctx.fillStyle = cone
+        ctx.beginPath()
+        ctx.moveTo(tipX, tipY)
+        ctx.lineTo(x + R * (cb * bx - sb * by), y + R * (sb * bx + cb * by))
+        ctx.lineTo(x + R * (cb * bx + sb * by), y + R * (cb * by - sb * bx))
+        ctx.closePath()
+        ctx.fill()
+      }
+
+      // Opaque backing first: the photo may have transparency, and the
+      // wireframe reading through a face is not the effect.
+      ctx.beginPath()
+      ctx.arc(x, y, R, 0, 2 * Math.PI)
+      ctx.fillStyle = backdrop()
+      ctx.fill()
+
+      ctx.save()
+      ctx.clip()
+      const k = Math.max((R * 2) / img.naturalWidth, (R * 2) / img.naturalHeight)
+      const w = img.naturalWidth * k
+      const h = img.naturalHeight * k
+      ctx.drawImage(img, x - w / 2, y - h / 2, w, h)
+      ctx.restore()
+
+      ctx.beginPath()
+      ctx.arc(x, y, R, 0, 2 * Math.PI)
+      ctx.strokeStyle = accent()
+      ctx.lineWidth = 2 * s
+      ctx.shadowColor = accent()
+      ctx.shadowBlur = 16 * s
+      ctx.stroke()
+      ctx.restore()
+
+      // The label rides with the photo, on whichever side keeps it off the
+      // globe, so the place stays named even while the pin itself is hidden.
+      const above = dy <= 0
+      drawLabel(x, y + (above ? -R - 10 * s : R + 10 * s), pin.label, alpha, s, above ? "bottom" : "top")
+    }
+
+    /**
      * Two neighbouring stops in the same city (Ames → Urbandale) are a couple of
      * pixels apart at globe scale, so cross-fading their pins would just look
      * like a smudge. Close pins glide as one and swap labels; distant ones
      * cross-fade, since they are on opposite sides of the sphere anyway.
      */
-    const drawPins = (a: Pin | null, b: Pin | null, t: number, e: number, s: number, fade: number) => {
+    const drawPins = (
+      a: Pin | null,
+      b: Pin | null,
+      t: number,
+      e: number,
+      s: number,
+      fade: number,
+      cx: number,
+      cy: number,
+      r: number,
+    ) => {
       if (fade <= 0.01) return
       if (a && b) {
         const apart = d3.geoDistance([a.lng, a.lat], [b.lng, b.lat]) / DEG
         if (apart < 6) {
+          // Iowa and Wichita are close enough to glide as one pin, so the hero's
+          // portrait and caption have to be handled here too — both leave over
+          // the first half of the glide, which is also when the glided pin grows
+          // back the stem the portrait had been standing in for.
+          const lead = t < 0.5 ? a : b
+          const leaving = clamp01(1 - t * 2)
           const glided: Pin = {
             lng: lerp(a.lng, b.lng, e),
             lat: lerp(a.lat, b.lat, e),
             label: a.label,
+            avatar: lead.avatar,
           }
+          drawFace(glided, fade * leaving, s, cx, cy, r)
+
           const anchor = drawPinBody(glided, fade, s)
           if (!anchor) return
-          if (a.label === b.label) drawLabel(anchor.x, anchor.y, a.label, anchor.fade, s)
+          // Whatever the portrait is still showing, the pin does not repeat.
+          const named = anchor.fade * (glided.avatar ? 1 - leaving : 1)
+          if (a.label === b.label) drawLabel(anchor.x, anchor.y, a.label, named, s)
           else {
-            drawLabel(anchor.x, anchor.y, a.label, anchor.fade * (1 - t), s)
-            drawLabel(anchor.x, anchor.y, b.label, anchor.fade * t, s)
+            drawLabel(anchor.x, anchor.y, a.label, named * (1 - t), s)
+            drawLabel(anchor.x, anchor.y, b.label, named * t, s)
           }
-          // Iowa and Wichita are close enough to glide as one pin, so the hero's
-          // caption has to be handled here too — it fades out as the glide runs.
-          const lead = t < 0.5 ? a : b
-          if (lead.notes) {
-            drawNote(anchor.x, anchor.dotY + 16 * s, lead.notes, anchor.fade * clamp01(1 - t * 2), s)
-          }
+          if (lead.notes) drawNote(anchor.x, anchor.dotY + 16 * s, lead.notes, anchor.fade * leaving, s)
           return
         }
       }
@@ -413,9 +591,10 @@ export default function GlobeScene({
         [b, t],
       ] as const) {
         if (!pin || alpha * fade <= 0.01) continue
+        drawFace(pin, alpha * fade, s, cx, cy, r)
         const anchor = drawPinBody(pin, alpha * fade, s)
         if (!anchor) continue
-        drawLabel(anchor.x, anchor.y, pin.label, anchor.fade, s)
+        if (!pin.avatar) drawLabel(anchor.x, anchor.y, pin.label, anchor.fade, s)
         if (pin.notes) drawNote(anchor.x, anchor.dotY + 16 * s, pin.notes, anchor.fade, s)
       }
     }
@@ -509,7 +688,7 @@ export default function GlobeScene({
         vw,
         vh,
       })
-      if (data) drawPins(pins.a, pins.b, pins.t, pins.e, s, pins.fade)
+      if (data) drawPins(pins.a, pins.b, pins.t, pins.e, s, pins.fade, cx, cy, r)
 
       drawReticle(cx, cy, r, lock)
       ctx.restore()

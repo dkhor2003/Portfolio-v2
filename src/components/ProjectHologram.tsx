@@ -593,7 +593,7 @@ export default function ProjectHologram() {
   if (reduce) {
     return (
       <section id="projects" className="relative z-10 py-24 px-6 md:px-20 max-w-6xl mx-auto">
-        <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">Selected work</div>
+        <div className="font-mono text-xs text-accent uppercase tracking-widest mb-3.5">My Projects</div>
         <h2 className="font-display font-semibold text-3xl md:text-4xl mb-11">Things I've built</h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5">
           {projects.map((p) => (
@@ -638,7 +638,7 @@ export default function ProjectHologram() {
               screen edge to edge on narrow viewports, and the floating menu
               owns the top-right corner. */}
           <div data-hud className="absolute top-8 left-6 md:left-14 z-10">
-            <div className="font-mono text-[11px] text-accent uppercase tracking-[0.22em]">Selected work</div>
+            <div className="font-mono text-[11px] text-accent uppercase tracking-[0.22em]">My Projects</div>
             <h2 className="font-display font-semibold text-lg lg:text-3xl mt-1 lg:mt-2">Things I've built</h2>
 
             <div className="flex items-center gap-3 mt-2 lg:mt-5">
@@ -655,9 +655,6 @@ export default function ProjectHologram() {
                   />
                 ))}
               </div>
-            </div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-dim mt-2.5 hidden lg:block [@media(max-height:760px)]:lg:hidden">
-              Scroll to rotate the array
             </div>
           </div>
 
