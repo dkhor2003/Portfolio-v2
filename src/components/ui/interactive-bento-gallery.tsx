@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 // This project ships `motion` (v12), which is framer-motion under its new name.
 // Importing from 'framer-motion' would pull a second copy of the same library.
 import { motion, AnimatePresence } from 'motion/react'
@@ -138,7 +139,11 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
 
     if (!isOpen) return null;
 
-    return (
+    // Portalled to the body. The page animates its sections in with a transform,
+    // and a transformed ancestor becomes the containing block for `fixed`
+    // children — inside it this cover collapsed to the section's own box and
+    // left the page's copy showing through beside it.
+    return createPortal(
         <>
             {/* Viewer. Above the nav (z-30) and the scroll progress bar (z-60). */}
             <motion.div
@@ -146,7 +151,9 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                className="fixed inset-0 z-[120] bg-ink/92 backdrop-blur-xl"
+                // Opacity has to come off Tailwind's scale: `/92` is not on it,
+                // so it compiled to nothing and the cover was transparent.
+                className="fixed inset-0 z-[120] bg-ink/95 backdrop-blur-xl"
             >
                 <div className="h-full flex flex-col">
                     <div className="flex-1 p-3 sm:p-6 md:p-10 flex items-center justify-center">
@@ -194,7 +201,9 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                 </motion.button>
             </motion.div>
 
-            {/* Draggable filmstrip. */}
+            {/* Draggable filmstrip. Centred by auto margins rather than a
+                -translate-x-1/2: drag writes its own transform, which drops that
+                class's offset and leaves the strip hanging off to the right. */}
             <motion.div
                 drag
                 dragMomentum={false}
@@ -204,7 +213,7 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                 onDragEnd={(_, info) => {
                     setDockPosition((prev) => ({ x: prev.x + info.offset.x, y: prev.y + info.offset.y }));
                 }}
-                className="fixed z-[130] left-1/2 bottom-5 -translate-x-1/2 touch-none"
+                className="fixed inset-x-0 bottom-5 z-[130] mx-auto w-fit touch-none"
             >
                 <motion.div className="relative rounded-xl bg-latte/10 backdrop-blur-xl border border-latte/30 shadow-lg cursor-grab active:cursor-grabbing">
                     <div className="flex items-center -space-x-2 px-3 py-2">
@@ -254,7 +263,8 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
                     </div>
                 </motion.div>
             </motion.div>
-        </>
+        </>,
+        document.body,
     );
 };
 

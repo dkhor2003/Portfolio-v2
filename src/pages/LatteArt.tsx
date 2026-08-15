@@ -18,9 +18,6 @@ export default function LatteArt() {
       {/* The header above already names the page, so the gallery's own title and
           description are left off. */}
       <section className="pb-20 animate-fadeUp">
-        <p className="text-center font-mono text-[11px] uppercase tracking-[0.2em] text-dim">
-          Tap a pour to open it · drag to rearrange
-        </p>
         <InteractiveBentoGallery mediaItems={latteArt} />
       </section>
 

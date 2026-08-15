@@ -123,17 +123,6 @@ export default function Home() {
           portfolio
         </Rise>
 
-        {/* Edge micro-text — top right */}
-        <Rise
-          delay={0.6}
-          y={0}
-          className="absolute top-8 right-6 md:right-14 z-20 hidden md:block max-w-[260px] font-mono text-[11px] uppercase tracking-[0.1em] leading-[1.6] text-muted pointer-events-none"
-        >
-          <span className="text-fg font-semibold">What I can help you with</span>
-          <br />
-          Full-stack web apps. APIs and data pipelines. Interactive front-ends. Latte art on request.
-        </Rise>
-
         {/* The composition: oversized condensed type beside the globe, capped and
             centred so the two read as one unit — left-flush type on a wide
             screen leaves a hole between them. Once the headline grows wide

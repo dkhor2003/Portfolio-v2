@@ -73,10 +73,10 @@ export const heroPin: Pin = {
   label: "IOWA, USA",
   avatar: "dylan.png",
   notes: [
-    "↑ you are looking at my desk",
+    "↑ weather is bad here",
     "↑ currently based here",
     "↑ CST · probably awake",
-    "↑ yes, it snows",
+    "↑ living beside corn field",
   ],
 }
 
@@ -124,7 +124,7 @@ export const journey: JourneyStop[] = [
     placeSmall: SMALL,
     from: "left",
     year: "2021 - 2025",
-    text: "Went to Iowa State University. Got my BSc in Bioinformatics and MSc in Computer Science.",
+    text: "Attended Iowa State University. Got my BSc in Bioinformatics and MSc in Computer Science.",
     image: "isu.png",
     alt: "Iowa State University campus.",
     expandable: true,
