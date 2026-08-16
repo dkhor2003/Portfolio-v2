@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { stopImage } from './journey'
+import { projectImage } from './projects'
 // The standalone three.js page, emitted as its own file and framed below. It
 // stays a plain HTML document on purpose: it draws with the r128 global build
 // off a CDN, which does not mix with the module three this app bundles.
@@ -37,6 +38,13 @@ const publications = [
     venue: 'arXiv',
     href: 'https://arxiv.org/abs/2504.15414',
   },
+]
+
+/** Days out with the Source Allies team, for the apprenticeship stop. */
+const sourceAlliesEvents = [
+  { file: 'sai_cross_country.png', caption: 'Cross country — Des Moines Corporate Games' },
+  { file: 'sai_road_race.png', caption: 'Road race 5K — bronze' },
+  { file: 'sai_ragbrai.png', caption: 'RAGBRAI' },
 ]
 
 /** Iowa State's write-up on the lab. */
@@ -82,7 +90,7 @@ export const journeyDetails: Record<string, ComponentType> = {
   'stop-penang': () => (
     <>
       <h3>Growing up in Penang</h3>
-      <p>Moved here at two and stayed sixteen years. More to come.</p>
+      <p>Having lived there for 16 years, I can say I am deeply connected to its culture, community, and most importantly, the <b>FOOD</b>. Always trying to recommend others to give a visit to Penang whenever they have the chance.</p>
 
       <h4>The food I miss</h4>
       <div className="grid gap-5 sm:grid-cols-2">
@@ -108,7 +116,7 @@ export const journeyDetails: Record<string, ComponentType> = {
   'stop-ames': () => (
     <>
       <h3>Iowa State University</h3>
-      <p>BSc in Bioinformatics, then an MSc in Computer Science.</p>
+      <p>BSc in Bioinformatics (<i>Spring 2023</i>), then an MSc in Computer Science (<i>Fall 2025</i>).</p>
 
       {/* Portrait, so it is boxed rather than run full width — at the panel's
           width it would push everything below it off the first screen. */}
@@ -154,17 +162,111 @@ export const journeyDetails: Record<string, ComponentType> = {
   'stop-source-allies': () => (
     <>
       <h3>Source Allies</h3>
-      <p>My first tech job, as a Software Engineer Apprentice. More to come.</p>
+      <p>I joined as a Software Engineer Apprentice, alongside six other apprentices.</p>
+
+      <img
+        src={stopImage('sai_apprentice.png')}
+        alt="The Source Allies apprentice cohort."
+        loading="lazy"
+        decoding="async"
+      />
+
+      <p>
+        Coming into tech from outside it, I was overwhelmed at first by how much there was to pick up — technical
+        skills, industry knowledge and software development practice all at once. Over the apprenticeship I got to
+        work across infrastructure as code and cloud services, event-driven architecture, authentication and
+        observability, and full-stack AI, all in a consulting environment.
+      </p>
+
+      <h4>What I worked on</h4>
+      <ul>
+        <li>
+          Deployed infrastructure as code with Terraform, integrating Azure Functions and Service Bus for
+          event-driven, asynchronous communication between an HR tool and dependent systems, reducing response
+          times.
+        </li>
+        <li>
+          Improved system security, reliability and observability by migrating to OIDC authentication and
+          strengthening monitoring for internal tools.
+        </li>
+        <li>
+          Enhanced an AI-powered chatbot (FastAPI, React) with multi-session support and a retrieval-augmented
+          generation pipeline with GitHub integration, increasing response accuracy and usability.
+        </li>
+      </ul>
+
+      <h4>And it was eventful</h4>
+      <p>
+        There was always something on — plenty of internal events, and the Des Moines Corporate Games, where I ran
+        cross country and the road race 5K on the Source Allies team. I came away from the 5K with a bronze medal.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {sourceAlliesEvents.map((event) => (
+          <figure key={event.file}>
+            <img
+              src={stopImage(event.file)}
+              alt={event.caption}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[4/3]"
+            />
+            <figcaption className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-dim">
+              {event.caption}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
     </>
   ),
 
   'stop-musco': () => (
     <>
       <h3>Musco Lighting — Emerging Tech</h3>
-      <p>Software Developer on the Emerging Tech group. More to come.</p>
+      <p>
+        I joined the Emerging Tech team as a Software Developer, working on Umpire Assist — an AI-powered
+        technology that helps umpires call balls and strikes for youth baseball and softball.
+      </p>
 
-      <h4>Play with it</h4>
-      <p>Drag to orbit, scroll to zoom, and click the letters to launch them.</p>
+      <h4>What I have worked on so far</h4>
+      <ul>
+        <li>
+          Integrated Pact contract testing into CI/CD pipelines to automate microservice compatibility validation,
+          reducing integration risk and enabling safer deployments.
+        </li>
+        <li>
+          Migrated cloud-to-edge communication from tunnel-based HTTP request/response to an MQTT-based RPC
+          architecture (AWS IoT Core, Eclipse Mosquitto), removing the dependency on tunnel availability and
+          improving the reliability, monitorability and scalability of command delivery.
+        </li>
+        <li>
+          Rearchitected the edge audio playback pipeline for reliability and performance — direct driver
+          integration and software-mixed output in place of subprocess calls, plus automatic recovery from AWS S3
+          for missing or corrupted audio files.
+        </li>
+      </ul>
+
+      <h4>ScoreCast — internal hackathon</h4>
+      <p>
+        The goal was to build  a flexible scoreboard system: many sports, cloud-connected devices, ads and video, and custom
+        overlays. My team built ScoreCast, a display page that shows the scoreboard and a control page that drives
+        it live from any device.
+      </p>
+      <img
+        src={projectImage('scorecast.png')}
+        alt="The ScoreCast scoreboard."
+        loading="lazy"
+        decoding="async"
+      />
+      <p>
+        Built with JavaScript, React and Tailwind CSS, on a Supabase Postgres database — its built-in websockets
+        push every change from the control page to the display page as it happens.
+      </p>
+
+      <h4>On the side</h4>
+      <p>
+        A small three.js page: the word MUSCO sits on the ground, and clicking any letter blows the whole thing off
+        the screen. Drag to orbit, scroll to zoom — feel free to try it out.
+      </p>
       {/* Sandboxed to scripts only: the toy needs none of this page, and this
           page should not be reachable from it. */}
       <iframe
@@ -175,7 +277,6 @@ export const journeyDetails: Record<string, ComponentType> = {
         className="block h-[min(65svh,30rem)] w-full rounded-2xl border border-line bg-ink"
       />
       <p className="!mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-dim">
-        Scrolling over the toy zooms it — scroll beside it to read on.{' '}
         <a href={muscoToy} target="_blank" rel="noopener noreferrer">
           Open full screen ↗
         </a>
