@@ -21,6 +21,9 @@ for (const [path, url] of Object.entries(foodUrls)) {
   food[path.split('/').pop()!] = url
 }
 
+/** Photos that only an opened card shows, for warming the cache — see lib/preload. */
+export const detailImages = Object.values(food)
+
 /** Papers out of the robotics lab, newest link first, for the Ames stop. */
 const publications = [
   {
@@ -42,9 +45,9 @@ const publications = [
 
 /** Days out with the Source Allies team, for the apprenticeship stop. */
 const sourceAlliesEvents = [
-  { file: 'sai_cross_country.png', caption: 'Cross country — Des Moines Corporate Games' },
-  { file: 'sai_road_race.png', caption: 'Road race 5K — bronze' },
-  { file: 'sai_ragbrai.png', caption: 'RAGBRAI' },
+  { file: 'sai_cross_country.webp', caption: 'Cross country — Des Moines Corporate Games' },
+  { file: 'sai_road_race.webp', caption: 'Road race 5K — bronze' },
+  { file: 'sai_ragbrai.webp', caption: 'RAGBRAI' },
 ]
 
 /** Iowa State's write-up on the lab. */
@@ -54,24 +57,20 @@ const LAB_ARTICLE =
 /** The Malaysian food I grew up on, for the Penang stop. */
 const penangFood = [
   {
-    file: 'nasi_lemak.png',
+    file: 'nasi_lemak.webp',
     name: 'Nasi lemak',
-    note: 'Coconut rice with sambal, fried anchovies, peanuts and egg.',
   },
   {
-    file: 'roti_canai.png',
+    file: 'roti_canai.webp',
     name: 'Roti canai',
-    note: 'Flaky griddled flatbread, torn and dipped in dhal or curry.',
   },
   {
-    file: 'prawn_mee.png',
+    file: 'prawn_mee.webp',
     name: 'Prawn mee',
-    note: "Penang's prawn and pork broth, noodles, chilli paste on the side.",
   },
   {
-    file: 'pan_mee.png',
+    file: 'pan_mee.webp',
     name: 'Pan mee',
-    note: 'Hand-torn noodles with anchovies, minced pork and greens.',
   },
 ]
 
@@ -105,7 +104,6 @@ export const journeyDetails: Record<string, ComponentType> = {
             />
             <figcaption className="mt-2.5">
               <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">{dish.name}</span>
-              <span className="mt-1 block text-[13px] leading-relaxed text-fg/70">{dish.note}</span>
             </figcaption>
           </figure>
         ))}
@@ -121,7 +119,7 @@ export const journeyDetails: Record<string, ComponentType> = {
       {/* Portrait, so it is boxed rather than run full width — at the panel's
           width it would push everything below it off the first screen. */}
       <div className="mx-auto max-w-[20rem]">
-        <img src={stopImage('graduate.png')} alt="At my Iowa State graduation." loading="lazy" decoding="async" />
+        <img src={stopImage('graduate.webp')} alt="At my Iowa State graduation." loading="lazy" decoding="async" />
       </div>
 
       <h4>Graduate Research and Teaching Assistant</h4>
@@ -165,7 +163,7 @@ export const journeyDetails: Record<string, ComponentType> = {
       <p>I joined as a Software Engineer Apprentice, alongside six other apprentices.</p>
 
       <img
-        src={stopImage('sai_apprentice.png')}
+        src={stopImage('sai_apprentice.webp')}
         alt="The Source Allies apprentice cohort."
         loading="lazy"
         decoding="async"
@@ -252,7 +250,7 @@ export const journeyDetails: Record<string, ComponentType> = {
         it live from any device.
       </p>
       <img
-        src={projectImage('scorecast.png')}
+        src={projectImage('scorecast.webp')}
         alt="The ScoreCast scoreboard."
         loading="lazy"
         decoding="async"

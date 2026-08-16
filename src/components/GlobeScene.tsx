@@ -344,6 +344,43 @@ export default function GlobeScene({
     }
 
     /**
+     * The hero headline's footprint, in viewport coordinates.
+     *
+     * The type is painted over this canvas — the hero section is z-10 and the
+     * globe layer z-0 — so on a stacked layout the portrait's orbit runs it
+     * straight under "DEVELOPER". This is the box it has to stay clear of.
+     *
+     * Measured off the rendered lines rather than the element's own box, which
+     * is full width and would fence off the whole screen; re-read on a slow
+     * throttle, because the headline is sized and revealed after first paint
+     * and this is a forced layout every time it is taken.
+     */
+    let keepOut: { bottom: number; left: number; right: number } | null = null
+    let keepOutAt = -1e9
+    const headlineBox = () => {
+      if (elapsedMs - keepOutAt < 400) return keepOut
+      keepOutAt = elapsedMs
+      keepOut = null
+      const heading = document.querySelector("#hero-frame h1")
+      if (!heading) return keepOut
+      const range = document.createRange()
+      const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT)
+      let bottom = -Infinity
+      let left = Infinity
+      let right = -Infinity
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        range.selectNodeContents(node)
+        const r = range.getBoundingClientRect()
+        if (r.width < 1 || r.height < 1) continue
+        bottom = Math.max(bottom, r.bottom)
+        left = Math.min(left, r.left)
+        right = Math.max(right, r.right)
+      }
+      if (bottom > -Infinity) keepOut = { bottom, left, right }
+      return keepOut
+    }
+
+    /**
      * Where a place sits in view space, as offsets from the globe's centre in
      * radii. `behind` is the far side of the sphere, where the offset is pushed
      * out to the rim the place disappeared behind — so a marker tracking it
@@ -483,6 +520,17 @@ export default function GlobeScene({
       x = Math.min(Math.max(x, padX), vw - padX)
       y = Math.min(Math.max(y, padY), vh - padY)
 
+      // Hug the headline rather than orbit under it. Pinned just below the
+      // type, the marker slides along it as the globe turns — in one piece and
+      // legible, instead of dissolving into the letters for half a rotation.
+      // The label rides above the photo, so its line counts as part of the box.
+      const gap = 10 * s
+      const labelH = 19 * s
+      const text = headlineBox()
+      if (text && x + padX > text.left && x - padX < text.right) {
+        y = Math.min(Math.max(y, text.bottom + R + gap + labelH), vh - padY)
+      }
+
       ctx.save()
       ctx.globalAlpha = alpha
 
@@ -535,7 +583,7 @@ export default function GlobeScene({
       // The label rides with the photo, on whichever side keeps it off the
       // globe, so the place stays named even while the pin itself is hidden.
       const above = dy <= 0
-      drawLabel(x, y + (above ? -R - 10 * s : R + 10 * s), pin.label, alpha, s, above ? "bottom" : "top")
+      drawLabel(x, y + (above ? -R - gap : R + gap), pin.label, alpha, s, above ? "bottom" : "top")
     }
 
     /**

@@ -31,7 +31,7 @@ const SPANS = [
  * Captions, keyed by file name. Anything not listed falls back to a numbered
  * title — fill these in as you go and the gallery picks them up.
  *
- * e.g. 'Image (1).jpeg': { title: 'Rosetta', desc: 'Six leaves, finally even' },
+ * e.g. 'Image (1).webp': { title: 'Rosetta', desc: 'Six leaves, finally even' },
  */
 const captions: Record<string, { title: string; desc?: string }> = {}
 

@@ -18,6 +18,9 @@ export function stopImage(file: string): string | undefined {
   return byFileName[file]
 }
 
+/** Every photo in assets/about, for warming the cache — see lib/preload. */
+export const aboutImages = Object.values(byFileName)
+
 export interface Pin {
   lng: number
   lat: number
@@ -71,7 +74,7 @@ export const heroPin: Pin = {
   lng: -93.6,
   lat: 41.6,
   label: "IOWA, USA",
-  avatar: "dylan.png",
+  avatar: "dylan.webp",
   notes: [
     "↑ weather is bad here",
     "↑ currently based here",
@@ -101,7 +104,7 @@ export const journey: JourneyStop[] = [
     from: "left",
     year: "2003",
     text: "I was born here.",
-    image: "baby.png",
+    image: "baby.webp",
     alt: "Me as a baby.",
     expandable: false,
   },
@@ -113,7 +116,7 @@ export const journey: JourneyStop[] = [
     from: "right",
     year: "2005 - 2021",
     text: "Moved to Malaysia at the age of 2, and lived there for 16 years.",
-    image: "penang.png",
+    image: "penang.webp",
     alt: "Penang, Malaysia.",
     expandable: true,
   },
@@ -125,7 +128,7 @@ export const journey: JourneyStop[] = [
     from: "left",
     year: "2021 - 2025",
     text: "Attended Iowa State University. Got my BSc in Bioinformatics and MSc in Computer Science.",
-    image: "isu.png",
+    image: "isu.webp",
     alt: "Iowa State University campus.",
     expandable: true,
   },
@@ -139,7 +142,7 @@ export const journey: JourneyStop[] = [
     from: "right",
     year: "2025",
     text: "Landed my first tech job as a Software Engineer Apprentice at Source Allies.",
-    image: "source_allies.png",
+    image: "source_allies.webp",
     alt: "Source Allies.",
     expandable: true,
   },
@@ -153,7 +156,7 @@ export const journey: JourneyStop[] = [
     year: "2026 - PRESENT",
     text:
       "After receiving my MSc, I started working as a Software Developer as part of Musco Lighting's Emerging Tech group.",
-    image: "musco.png",
+    image: "musco.webp",
     alt: "Musco Lighting.",
     expandable: true,
   },

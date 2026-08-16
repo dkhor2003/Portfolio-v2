@@ -7,6 +7,7 @@ import FloatingMenu from './components/FloatingMenu';
 import LatteLoader from './components/LatteLoader';
 import { ScrollProgress } from './components/motion/Reveal';
 import { loadGlobeData } from './lib/globe-data';
+import { preloadImages, routeImages, warmTheRest } from './lib/preload';
 import Home from './pages/Home';
 import LatteArt from './pages/LatteArt';
 import NotFound from './pages/NotFound';
@@ -15,11 +16,17 @@ import NotFound from './pages/NotFound';
 const BOOT_MS = 1500;
 const ROUTE_MS = 850;
 const FADE_MS = 520;
+/**
+ * Longest the photos may hold the curtain. Past this the page goes up anyway —
+ * a slow connection should still get in, even if a picture or two lands late.
+ */
+const IMAGE_MS = 6000;
 
 /**
  * Drives the loading curtain: on boot it waits for the globe's land data (and
- * the webfonts) so the page is never revealed half-drawn, and on every route
- * change it plays a shorter version so navigation gets the same beat.
+ * the webfonts) so the page is never revealed half-drawn, on every route change
+ * it plays a shorter version so navigation gets the same beat, and either way
+ * it holds until the photos that route is about to paint have arrived.
  */
 function useRouteCurtain() {
   const { pathname } = useLocation();
@@ -39,7 +46,10 @@ function useRouteCurtain() {
     window.scrollTo(0, 0);
 
     let cancelled = false;
-    const waits: Promise<unknown>[] = [new Promise((r) => setTimeout(r, boot ? BOOT_MS : ROUTE_MS))];
+    const waits: Promise<unknown>[] = [
+      new Promise((r) => setTimeout(r, boot ? BOOT_MS : ROUTE_MS)),
+      preloadImages(routeImages(pathname), IMAGE_MS),
+    ];
     if (boot) {
       waits.push(loadGlobeData().catch(() => undefined));
       if (document.fonts) waits.push(document.fonts.ready);
@@ -58,6 +68,12 @@ function useRouteCurtain() {
       window.clearTimeout(fadeTimer);
     };
   }, [pathname]);
+
+  // With the page up and paid for, fetch what is still behind a click — the
+  // card overlays and the other route — so opening one is instant too.
+  useEffect(() => {
+    if (stage === 'gone') warmTheRest();
+  }, [stage]);
 
   // Nothing behind the curtain should scroll out from under it.
   useEffect(() => {

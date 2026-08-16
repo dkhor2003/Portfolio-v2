@@ -107,38 +107,52 @@ export function JourneyCard({ stop, index }: { stop: JourneyStop; index: number 
     );
   }
 
-  // Stacked, the globe owns the bottom of the screen, so there is no side for a
-  // card to come from — it drops from above and lifts back out the same way.
+  // Stacked, the card sits above the globe rather than beside it, so anything
+  // arriving from above crosses the globe on its way in. Coming in from the
+  // side leaves it alone — alternating, starting on the right, so consecutive
+  // stops do not all sweep the same way.
+  const stackedSide = index % 2 === 0 ? 1 : -1;
   const out = stackedLayout
-    ? { x: 0, y: -190, rotate: dir * 5, scale: 0.9, opacity: 0 }
+    ? { x: stackedSide * 340, y: 0, rotate: stackedSide * 6, scale: 0.9, opacity: 0 }
     : { x: dir * 190, y: 44, rotate: dir * 9, scale: 0.9, opacity: 0 };
 
   return (
+    // The element that is watched holds still and the one that flies is inside
+    // it. Parked off to the side a card overlaps almost none of the viewport —
+    // and the page clips its overflow, so no observer margin can see it out
+    // there either — which would leave it waiting for a cue that never comes.
     <motion.article
       className="w-[min(86vw,25rem)]"
       initial="out"
       whileInView="in"
       viewport={{ once: false, amount: 0.45 }}
-      variants={{
-        out,
-        in: {
-          x: 0,
-          y: 0,
-          rotate: 0,
-          scale: 1,
-          opacity: 1,
-          transition: { ...SPRING, staggerChildren: 0.07, delayChildren: 0.08 },
-        },
-      }}
-      transition={SPRING}
     >
-      {/* The idle bob lives on its own element so the CSS animation never
-          fights the transforms motion drives above and below it. */}
-      <div className="animate-floaty" style={{ animationDelay: `${index * 0.9}s` }}>
-        <motion.div style={{ rotate: dir * -1.6 }} whileHover={{ rotate: 0, y: -10, scale: 1.025 }} transition={SPRING}>
-          <CardFace stop={stop} index={index} onOpen={() => setOpen(true)} />
-        </motion.div>
-      </div>
+      <motion.div
+        variants={{
+          out,
+          in: {
+            x: 0,
+            y: 0,
+            rotate: 0,
+            scale: 1,
+            opacity: 1,
+            transition: { ...SPRING, staggerChildren: 0.07, delayChildren: 0.08 },
+          },
+        }}
+        transition={SPRING}
+      >
+        {/* The idle bob lives on its own element so the CSS animation never
+            fights the transforms motion drives above and below it. */}
+        <div className="animate-floaty" style={{ animationDelay: `${index * 0.9}s` }}>
+          <motion.div
+            style={{ rotate: dir * -1.6 }}
+            whileHover={{ rotate: 0, y: -10, scale: 1.025 }}
+            transition={SPRING}
+          >
+            <CardFace stop={stop} index={index} onOpen={() => setOpen(true)} />
+          </motion.div>
+        </div>
+      </motion.div>
       {detail}
     </motion.article>
   );
