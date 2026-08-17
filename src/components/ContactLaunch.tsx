@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
+import emailjs from '@emailjs/browser'
 import { randomPointOnGlobe } from '@/lib/globe-stage'
 import HoloFrame from './HoloFrame'
 import Rocket from './Rocket'
 
 const MESSAGE = 'Thanks, I will touch base with you soon...'
+const ERROR = 'That did not get through. Try again, or email me directly.'
+
+/* EmailJS. The public key is a client credential by design — the account is
+   protected by the domain allow-list in the dashboard, not by hiding this. */
+const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
+const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+const SUBJECT = "Contact from Dylan's v2 Portfolio"
+const INBOX = 'khordylan2003@gmail.com'
 
 /* Beat sheet, in seconds from submit. */
 const T_LAUNCH = 0.15
@@ -87,6 +97,7 @@ export default function ContactLaunch() {
   const [puffs, setPuffs] = useState<Puff[]>([])
   const [clearCopy, setClearCopy] = useState(false)
   const [showMessage, setShowMessage] = useState(false)
+  const [failed, setFailed] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const reduce = useReducedMotion()
 
@@ -94,11 +105,60 @@ export default function ContactLaunch() {
   const distance = useMotionValue(0)
   const offset = useTransform(distance, (v) => `${v}%`)
 
+  /**
+   * Puts the block back the way it was so the sender can retry with their copy
+   * still in the fields. Any timers from the flight are torn down by the effect
+   * below when the phase changes out of 'flying'.
+   */
+  const abort = useCallback(() => {
+    setPhase('idle')
+    setFlight(null)
+    setClearCopy(false)
+    setShowMessage(false)
+    setPuffs([])
+    setFailed(true)
+  }, [])
+
+  /**
+   * Hands the message to EmailJS. Runs alongside the launch rather than gating
+   * it: the flight is ~5s and the send is usually done well inside that, and a
+   * failure rolls the whole block back to the form.
+   */
+  const deliver = useCallback(() => {
+    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+      return Promise.reject(new Error('EmailJS environment variables are not set'))
+    }
+    return emailjs.send(
+      SERVICE_ID,
+      TEMPLATE_ID,
+      {
+        title: SUBJECT,
+        subject: SUBJECT,
+        name: form.name,
+        email: form.email,
+        message: form.message,
+        to_email: INBOX,
+      },
+      { publicKey: PUBLIC_KEY },
+    )
+  }, [form])
+
+  const send = useCallback(() => {
+    setFailed(false)
+    deliver()
+      .then(() => setForm({ name: '', email: '', message: '' }))
+      .catch((err) => {
+        console.error('Contact form send failed', err)
+        abort()
+      })
+  }, [deliver, abort])
+
   const submit = useCallback(
     (event: FormEvent) => {
       event.preventDefault()
       const el = formRef.current
       if (reduce || !el) {
+        send()
         setClearCopy(true)
         setShowMessage(true)
         setPhase('sent')
@@ -110,6 +170,7 @@ export default function ContactLaunch() {
         return { x: r.left, y: r.top, w: r.width, h: r.height }
       })
       if (!fields.length) {
+        send()
         setClearCopy(true)
         setShowMessage(true)
         setPhase('sent')
@@ -125,10 +186,11 @@ export default function ContactLaunch() {
       const hy = Math.max(fy - 260, 90)
       const launch = randomPointOnGlobe(window.innerWidth, window.innerHeight)
 
+      send()
       setFlight({ fields, hx, hy, fx, fy, ...buildPath(launch.x, launch.y, hx, hy, window.innerWidth) })
       setPhase('flying')
     },
-    [reduce],
+    [reduce, send],
   )
 
   useEffect(() => {
@@ -248,6 +310,16 @@ export default function ContactLaunch() {
             <button type="submit" className="hoverable bg-accent text-ink font-bold text-sm rounded-lg py-3.5 mt-1.5">
               Send message
             </button>
+
+            {/* Only ever shown after a failed send, with the fields still filled. */}
+            {failed && (
+              <p role="alert" className="font-mono text-xs text-red-400 mt-1">
+                {ERROR}{' '}
+                <a href={`mailto:${INBOX}`} className="hoverable underline underline-offset-2">
+                  {INBOX}
+                </a>
+              </p>
+            )}
           </form>
         </motion.div>
 
