@@ -64,6 +64,7 @@ const defined: Array<[slug: string, name: string, category: SkillCategory, level
   ['css', 'CSS', 'Language', 90],
   ['postgresql', 'PostgreSQL', 'Database', 85],
   ['redis', 'Redis', 'Database', 90],
+  ['go', 'Go', 'Language', 80],
 ]
 
 const listed = new Set(defined.map(([slug]) => slug))
